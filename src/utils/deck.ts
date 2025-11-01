@@ -25,6 +25,16 @@ export const deckUtils = {
     return { updatedDeck: deckToTakeFrom, updatedHand: hand };
   },
 
+  takeTopCardFromThrowPile(deckToTakeFrom: Card[], hand: Card[]) {
+    const lastIndex = deckToTakeFrom.length - 1;
+    const cardToTake = deckToTakeFrom[lastIndex];
+
+    hand.push(cardToTake);
+    deckToTakeFrom.splice(lastIndex, 1);
+
+    return { updatedDeck: deckToTakeFrom, updatedHand: hand };
+  },
+
   takeRandomCard(deckToTakeFrom: Card[], hand: Card[]) {
     const randomIndex = Math.floor(Math.random() * deckToTakeFrom.length);
     const cardToTake = deckToTakeFrom[randomIndex];
@@ -62,11 +72,12 @@ export const deckUtils = {
   putCardsOnBoard(
     playerHand: Card[],
     handIndexes: number[],
-    board: Record<string, Card[][]>,
+    board: Record<string, Record<string, Card[]>>,
     playerId: string
   ) {
     const newHand = playerHand.slice();
-    //pick cards to place on board, remove from hand
+
+    //remove cards from hand based on indexes
     const cardsToPlace: Card[] = [];
     handIndexes
       .sort((a, b) => b - a)
@@ -76,10 +87,16 @@ export const deckUtils = {
       });
 
     const newBoard = { ...board };
-    //board[playerId][cardSetIndex] = array of cards in set
-    newBoard[playerId] = newBoard[playerId] || [];
-    newBoard[playerId].push(cardsToPlace);
 
+    const playerMelds = newBoard[playerId] ? { ...newBoard[playerId] } : {};
+    const meldIndex = Object.keys(playerMelds).length;
+
+    const meldKey = `${playerId}-${meldIndex}`;
+    playerMelds[meldKey] = cardsToPlace;
+
+    newBoard[playerId] = playerMelds;
+
+    console.log("New hand:", newHand);
     return { updatedHand: newHand, updatedBoard: newBoard };
   },
 

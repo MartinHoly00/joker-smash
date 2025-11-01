@@ -1,9 +1,9 @@
 import { useState } from "react";
-import "./CreateOnlineGame.css";
+import "./CreateOnlineGame.css"; // Import the new CSS file
 import { useAuth } from "../providers/UserProvider";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { database } from "../auth/config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link
 import type { RoomData, RoomInput } from "../types/room";
 
 export function CreateOnlineGame() {
@@ -41,6 +41,7 @@ export function CreateOnlineGame() {
         isFinished: false,
         throwPile: [],
         board: {},
+        winnerName: "",
       },
     };
 
@@ -63,43 +64,46 @@ export function CreateOnlineGame() {
   }
 
   return (
-    <>
+    <div className="create-game-container">
       {user ? (
-        <div>
-          <h1>Create Online Game Page</h1>
-          <form onSubmit={createGame} className="form__container">
-            <label>
-              Game Name:
+        <>
+          <h1 className="create-game-title">Create Game</h1>
+          <form onSubmit={createGame} className="create-game-form">
+            <label className="form-group">
+              <span>Game Name:</span>
               <input
                 type="text"
                 name="gameName"
                 required
+                className="form-input"
                 value={inputs.name}
                 onChange={(e) => setInputs({ ...inputs, name: e.target.value })}
               />
             </label>
-            <label>
-              Player Limit:
+            <label className="form-group">
+              <span>Player Limit:</span>
               <input
                 type="number"
                 name="playerLimit"
                 min={2}
                 max={8}
                 required
+                className="form-input"
                 value={inputs.playerLimit}
                 onChange={(e) =>
                   setInputs({ ...inputs, playerLimit: Number(e.target.value) })
                 }
               />
             </label>
-            <label>
-              Timer for Turns (seconds):
+            <label className="form-group">
+              <span>Timer for Turns (seconds):</span>
               <input
                 type="number"
                 name="timerForTurns"
                 min={10}
                 max={300}
                 required
+                className="form-input"
                 value={inputs.timerForTurns}
                 onChange={(e) =>
                   setInputs({
@@ -109,25 +113,27 @@ export function CreateOnlineGame() {
                 }
               />
             </label>
-            <label>
-              Password (optional):
+            <label className="form-group">
+              <span>Password (optional):</span>
               <input
                 type="password"
                 name="password"
+                className="form-input"
                 value={inputs.password}
                 onChange={(e) =>
                   setInputs({ ...inputs, password: e.target.value })
                 }
               />
             </label>
-            <label>
-              Number of Decks:
+            <label className="form-group">
+              <span>Number of Decks:</span>
               <input
                 type="number"
                 name="numberOfDecks"
                 min={1}
                 max={5}
                 required
+                className="form-input"
                 value={inputs.numberOfDecks}
                 onChange={(e) =>
                   setInputs({
@@ -137,14 +143,15 @@ export function CreateOnlineGame() {
                 }
               />
             </label>
-            <label>
-              Cards in Hand:
+            <label className="form-group">
+              <span>Cards in Hand:</span>
               <input
                 type="number"
                 name="cardsInHand"
                 min={1}
                 max={20}
                 required
+                className="form-input"
                 value={inputs.cardsInHand}
                 onChange={(e) =>
                   setInputs({
@@ -154,15 +161,26 @@ export function CreateOnlineGame() {
                 }
               />
             </label>
-            <button type="submit">Create game</button>
+            <button type="submit" className="pixel-button form-submit-button">
+              Create game
+            </button>
           </form>
-        </div>
+          <Link to="/" className="pixel-button secondary-button">
+            Back to Menu
+          </Link>
+        </>
       ) : (
-        <div>
+        <div className="signed-out-container">
+          <h1 className="create-game-title">Create Game</h1>
           <p>Please sign in to create an online game.</p>
-          <button onClick={signInWithGoogle}>Sign in with google</button>
+          <button onClick={signInWithGoogle} className="pixel-button">
+            Sign in with Google
+          </button>
+          <Link to="/" className="pixel-button secondary-button">
+            Back to Menu
+          </Link>
         </div>
       )}
-    </>
+    </div>
   );
 }

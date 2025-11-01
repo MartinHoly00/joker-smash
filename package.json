@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@uidotdev/usehooks": "^2.4.1",
     "array-shuffle": "^4.0.0",
     "firebase": "^12.5.0",
     "react": "^19.1.1",
+    "react-confetti": "^6.4.0",
     "react-dom": "^19.1.1",
     "react-loader-spinner": "^8.0.0",
     "react-router-dom": "^7.9.5"

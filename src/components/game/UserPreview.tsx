@@ -5,9 +5,14 @@ import "./UserPreview.css";
 type UserPreviewProps = {
   userToDisplay: User;
   usersTurn: boolean;
+  timer?: number | null;
 };
 
-export function UserPreview({ userToDisplay, usersTurn }: UserPreviewProps) {
+export function UserPreview({
+  userToDisplay,
+  usersTurn,
+  timer,
+}: UserPreviewProps) {
   const { user } = useAuth();
   return (
     <div
@@ -22,7 +27,12 @@ export function UserPreview({ userToDisplay, usersTurn }: UserPreviewProps) {
       />
       <span className="user-preview">{userToDisplay.displayName}</span>
       {user && user.uid === userToDisplay.uid && usersTurn && (
-        <span className="user-preview__desc">Your time to shine.</span>
+        <>
+          <span className="user-preview__desc">Your time to shine.</span>
+          {timer !== null && timer !== undefined && (
+            <span className="user-preview__timer">Time left: {timer}s</span>
+          )}
+        </>
       )}
     </div>
   );

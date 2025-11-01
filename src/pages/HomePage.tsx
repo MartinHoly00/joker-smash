@@ -1,52 +1,71 @@
 import { useState } from "react";
 import { useAuth } from "../providers/UserProvider";
 import "./HomePage.css";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function HomePage() {
   const { user, signInWithGoogle, signOut } = useAuth();
   const [isOnlineOpen, setIsOnlineOpen] = useState(false);
-
   const [onlineGameId, setOnlineGameId] = useState("");
 
+  const navigate = useNavigate();
   return (
-    <>
-      <div>
+    <div className="home-container">
+      <div className="user-info">
         {user ? (
-          <div>
-            <p>Welcome, {user.displayName}!</p>
+          <>
             <img src={user.photoURL || ""} alt="Profile" />
+            <p>Welcome, {user.displayName}!</p>
             <button onClick={signOut}>Sign Out</button>
-          </div>
+          </>
         ) : (
           <button onClick={signInWithGoogle}>Sign in with Google</button>
         )}
       </div>
 
-      <h1>Jocker Smash</h1>
-      <Link to="/local">Play solo</Link>
-      <Link to="/info">Info</Link>
+      <h1 className="home-title">JOKER SMASH</h1>
 
-      <div className="buttons__container">
-        <Link to="/local">Local Game</Link>
-        <div>
-          <button onClick={() => setIsOnlineOpen(!isOnlineOpen)}>
-            Join Online game
-          </button>
-          {isOnlineOpen && (
-            <div>
-              <input
-                type="text"
-                placeholder="Enter game ID"
-                value={onlineGameId}
-                onChange={(e) => setOnlineGameId(e.target.value)}
-              />
-              <Link to={`/online/${onlineGameId}`}>Join Game</Link>
-            </div>
-          )}
-        </div>
-        <Link to="/create-online">Create Online Game</Link>
+      {/* --- Main Navigation Buttons --- */}
+      <div className="buttons-container">
+        <button
+          onClick={() => navigate("/create-online")}
+          className="pixel-button"
+        >
+          Create Online Game
+        </button>
+
+        {/* --- Join Online Button & Form --- */}
+        <button
+          className="pixel-button"
+          onClick={() => setIsOnlineOpen(!isOnlineOpen)}
+        >
+          {isOnlineOpen ? "Close" : "Join Online Game with code"}
+        </button>
+
+        {isOnlineOpen && (
+          <div className="join-online-form">
+            <input
+              type="text"
+              placeholder="Enter game ID"
+              value={onlineGameId}
+              onChange={(e) => setOnlineGameId(e.target.value)}
+            />
+            <button
+              onClick={() => navigate(`/online/${onlineGameId}`)}
+              className="pixel-button"
+            >
+              Join Game
+            </button>
+          </div>
+        )}
+
+        <button onClick={() => navigate("/rooms")} className="pixel-button">
+          Find game
+        </button>
+        <button onClick={() => navigate("/info")} className="pixel-button">
+          Info
+        </button>
       </div>
-    </>
+    </div>
   );
 }

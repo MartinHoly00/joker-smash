@@ -83,3 +83,12 @@ rgba(255, 255, 255, 0) 100%
   color: #aaa;
   z-index: 2;
 }
+
+.user-preview__timer{
+  position: absolute;
+  top: 0;
+  right: 4px;
+  font-size: 0.75rem;
+  color: #aaa;
+  z-index: 2;
+}

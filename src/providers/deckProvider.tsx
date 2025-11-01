@@ -40,17 +40,6 @@ export const DeckProvider: React.FC<DeckProviderProps> = ({
 
   const shuffle = () => setCards((c) => fisherYatesShuffle(c));
 
-  const drawCard = (): Card | undefined =>
-    setCards((prev) => {
-      if (prev.length === 0) return prev;
-      const next = prev.slice();
-      const card = next.shift();
-      // update state with remainder
-      setTimeout(() => setCards(next), 0);
-      return prev;
-    }) as unknown as Card | undefined; // preserved return type below
-
-  // cleaner draw implementation that returns the card synchronously
   const draw = (): Card | undefined => {
     let drawn: Card | undefined;
     setCards((prev) => {

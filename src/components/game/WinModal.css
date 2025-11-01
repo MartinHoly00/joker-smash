@@ -1,0 +1,116 @@
+/* * Modal Backdrop 
+ * This covers the entire screen and provides the dark overlay.
+ */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  /* Animation: Start hidden */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+/* * .open class is added by React to trigger the fade-in
+ */
+.modal-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* * Modal Content
+ * This is the white box in the middle.
+ */
+.modal-content {
+  background: #2d2d2d;
+  color: #ffffff;
+  padding: 2.5rem 3rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  position: relative;
+  z-index: 1001;
+  width: 90%;
+  max-width: 450px;
+
+  /* Animation: Start slightly smaller and fade in */
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* * Pop-in effect when the modal opens
+ */
+.modal-backdrop.open .modal-content {
+  transform: scale(1);
+}
+
+/* * Close Button (the '×' in the corner)
+ */
+.modal-close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.modal-close-button:hover {
+  color: #ffffff;
+}
+
+/* * Modal Text Styling
+ */
+.modal-content h1 {
+  margin: 0;
+  font-size: 2.75rem;
+  font-weight: 700;
+  /* A nice gold color for the win */
+  color: #ffd700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.modal-winner-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #17a2b8; /* A contrasting accent color */
+  margin: 0.5rem 0;
+}
+
+.modal-content p {
+  font-size: 1.1rem;
+  margin: 1rem 0 2rem 0;
+  color: #f0f0f0;
+}
+
+/* * Call-to-Action Button (e.g., "Play Again")
+ */
+.modal-cta-button {
+  background: #28a745; /* A vibrant "go" green */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.modal-cta-button:hover {
+  background: #218838;
+  transform: translateY(-2px);
+}

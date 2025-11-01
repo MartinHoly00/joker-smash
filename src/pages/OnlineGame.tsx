@@ -57,16 +57,19 @@ export function OnlineGame() {
         joinRoom();
       }
     }
-    if (
-      roomData.password &&
-      roomData.hostPlayerId !== user?.uid &&
-      !roomData.currentPlayerIds.includes(user.uid)
-    ) {
-      setShowPasswordPrompt(true);
+    if (roomData.password && roomData.hostPlayerId !== user?.uid) {
+      const savedPassword = localStorage.getItem(
+        `room-${roomData.id}-password`
+      );
+      if (savedPassword !== roomData.password) {
+        setShowPasswordPrompt(true);
+      } else {
+        setShowPasswordPrompt(false);
+      }
     } else {
       setShowPasswordPrompt(false);
     }
-  }, [roomData, user]);
+  }, [roomData]);
 
   async function realtimeUpdate() {
     if (!id) return;
@@ -204,6 +207,7 @@ export function OnlineGame() {
       turnNumber: 1,
       throwPile: serialPile,
       board: {},
+      winnerName: "",
     };
 
     try {
@@ -234,6 +238,7 @@ export function OnlineGame() {
   function checkPasswordInput() {
     if (passwordInput === roomData?.password) {
       setShowPasswordPrompt(false);
+      localStorage.setItem(`room-${roomData.id}-password`, passwordInput);
     } else {
       setTryCount(tryCount + 1);
       if (tryCount + 1 >= maxTries) {
