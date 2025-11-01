@@ -18,10 +18,15 @@ export function CardRenderer({
   return (
     <img
       src={cardPath}
-      className={`${combinedClassName} ${
-        isHoverable ? "play-card--hoverable" : ""
-      } 
-        ${isSelected ? "play-card--selected" : ""}`}
+      className={`${combinedClassName}
+        
+        ${
+          isSelected
+            ? "play-card--selected"
+            : isHoverable
+            ? "play-card--hoverable"
+            : ""
+        }`}
       {...props}
     />
   );

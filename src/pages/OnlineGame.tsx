@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { database } from "../auth/config";
-import type { RoomData } from "../types/room";
+import type { RoomData, RoomGameState } from "../types/room";
 import { MagnifyingGlass } from "react-loader-spinner";
 import { useAuth } from "../providers/UserProvider";
 import { Deck } from "../data/Deck";
@@ -157,6 +157,15 @@ export function OnlineGame() {
       }
     }
 
+    //throw pile - init card for throw pile
+    let newThrowPile: Card[] = [];
+    const { updatedDeck, updatedHand } = deckUtils.takeRandomCard(
+      newDeck,
+      newThrowPile
+    );
+    newDeck = updatedDeck;
+    newThrowPile = updatedHand;
+
     const serialDeck = newDeck.map((c) => ({
       name: c.name,
       type: c.type,
@@ -177,13 +186,24 @@ export function OnlineGame() {
       }));
     }
 
-    const gameState = {
+    const serialPile: any[] = newThrowPile.map((c) => ({
+      value: c.value,
+      type: c.type,
+      imagePath: c.imagePath,
+      name: c.name,
+      color: c.color,
+      backImagePath: c.backImagePath,
+    }));
+
+    const gameState: RoomGameState = {
       currentTurnPlayerId: roomData.currentPlayerIds[0],
       deck: serialDeck,
       hands: serialHands,
       isFinished: false,
       isRunning: true,
       turnNumber: 1,
+      throwPile: serialPile,
+      board: {},
     };
 
     try {

@@ -39,6 +39,8 @@ export function CreateOnlineGame() {
         turnNumber: 0,
         isRunning: false,
         isFinished: false,
+        throwPile: [],
+        board: {},
       },
     };
 

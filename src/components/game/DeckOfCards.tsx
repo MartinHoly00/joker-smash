@@ -6,9 +6,10 @@ type DeckOfCardsProps = {
   numberOfCards: number;
   width?: number;
   height?: number;
+  pickCard: () => void;
 };
 
-export function DeckOfCards({ numberOfCards }: DeckOfCardsProps) {
+export function DeckOfCards({ numberOfCards, pickCard }: DeckOfCardsProps) {
   return (
     <div className="deck-of-cards__container">
       {Array.from({ length: numberOfCards }).map((_, index) => (
@@ -18,6 +19,8 @@ export function DeckOfCards({ numberOfCards }: DeckOfCardsProps) {
             style={{ left: index / 2, top: -index / 2, position: "absolute" }}
             //hover effect only on the top card
             isHoverable={index === numberOfCards - 1}
+            key={index}
+            onClick={index === numberOfCards - 1 ? pickCard : undefined}
           />
         </>
       ))}

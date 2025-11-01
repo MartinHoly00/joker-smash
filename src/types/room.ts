@@ -21,6 +21,8 @@ export type RoomGameState = {
   turnNumber: number;
   isRunning: boolean;
   isFinished: boolean;
+  throwPile: Card[];
+  board: Record<string, Card[][]>;
 };
 
 export type RoomInput = {
