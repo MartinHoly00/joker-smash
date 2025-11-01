@@ -1,0 +1,166 @@
+import { useState } from "react";
+import "./CreateOnlineGame.css";
+import { useAuth } from "../providers/UserProvider";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { database } from "../auth/config";
+import { useNavigate } from "react-router-dom";
+import type { RoomData, RoomInput } from "../types/room";
+
+export function CreateOnlineGame() {
+  const navigate = useNavigate();
+
+  const { user, signInWithGoogle } = useAuth();
+  const [inputs, setInputs] = useState<RoomInput>({
+    name: "",
+    playerLimit: 2,
+    password: "",
+    timerForTurns: 60,
+    numberOfDecks: 2,
+    cardsInHand: 13,
+  });
+
+  async function createGame(e?: React.FormEvent) {
+    e?.preventDefault();
+    if (!user) return alert("You must be signed in to create a game.");
+    const newRoom: RoomData = {
+      id: Math.random().toString(36).substring(2, 10), //p1vga674
+      name: inputs.name ?? "Unnamed secret room",
+      playerLimit: inputs.playerLimit ?? 2,
+      password: inputs.password ?? undefined,
+      currentPlayerIds: [user.uid],
+      hostPlayerId: user.uid,
+      timerForTurns: inputs.timerForTurns ?? 60,
+      numberOfDecks: inputs.numberOfDecks ?? 2,
+      cardsInHand: inputs.cardsInHand ?? 13,
+      gameState: {
+        deck: [],
+        hands: {},
+        currentTurnPlayerId: "",
+        turnNumber: 0,
+        isRunning: false,
+        isFinished: false,
+      },
+    };
+
+    console.log("Creating room: ", newRoom);
+
+    try {
+      const roomDoc = doc(database, "rooms", newRoom.id);
+      const docSnapshot = await getDoc(roomDoc);
+      if (docSnapshot.exists()) {
+        return alert("A room with this ID already exists. Please try again.");
+      } else {
+        await setDoc(roomDoc, newRoom);
+      }
+
+      await navigate(`/online/${newRoom.id}`);
+    } catch (error) {
+      console.error("Error creating game room: ", error);
+      alert("Error creating game room. Please try again.");
+    }
+  }
+
+  return (
+    <>
+      {user ? (
+        <div>
+          <h1>Create Online Game Page</h1>
+          <form onSubmit={createGame} className="form__container">
+            <label>
+              Game Name:
+              <input
+                type="text"
+                name="gameName"
+                required
+                value={inputs.name}
+                onChange={(e) => setInputs({ ...inputs, name: e.target.value })}
+              />
+            </label>
+            <label>
+              Player Limit:
+              <input
+                type="number"
+                name="playerLimit"
+                min={2}
+                max={8}
+                required
+                value={inputs.playerLimit}
+                onChange={(e) =>
+                  setInputs({ ...inputs, playerLimit: Number(e.target.value) })
+                }
+              />
+            </label>
+            <label>
+              Timer for Turns (seconds):
+              <input
+                type="number"
+                name="timerForTurns"
+                min={10}
+                max={300}
+                required
+                value={inputs.timerForTurns}
+                onChange={(e) =>
+                  setInputs({
+                    ...inputs,
+                    timerForTurns: Number(e.target.value),
+                  })
+                }
+              />
+            </label>
+            <label>
+              Password (optional):
+              <input
+                type="password"
+                name="password"
+                value={inputs.password}
+                onChange={(e) =>
+                  setInputs({ ...inputs, password: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Number of Decks:
+              <input
+                type="number"
+                name="numberOfDecks"
+                min={1}
+                max={5}
+                required
+                value={inputs.numberOfDecks}
+                onChange={(e) =>
+                  setInputs({
+                    ...inputs,
+                    numberOfDecks: Number(e.target.value),
+                  })
+                }
+              />
+            </label>
+            <label>
+              Cards in Hand:
+              <input
+                type="number"
+                name="cardsInHand"
+                min={1}
+                max={20}
+                required
+                value={inputs.cardsInHand}
+                onChange={(e) =>
+                  setInputs({
+                    ...inputs,
+                    cardsInHand: Number(e.target.value),
+                  })
+                }
+              />
+            </label>
+            <button type="submit">Create game</button>
+          </form>
+        </div>
+      ) : (
+        <div>
+          <p>Please sign in to create an online game.</p>
+          <button onClick={signInWithGoogle}>Sign in with google</button>
+        </div>
+      )}
+    </>
+  );
+}

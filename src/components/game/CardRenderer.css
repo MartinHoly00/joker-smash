@@ -1,0 +1,39 @@
+.play-card{
+  object-fit: cover;
+  width: 42px;
+  height: 60px;
+transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.play-card::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -75%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+to right,
+rgba(255, 255, 255, 0) 0%,
+rgba(255, 255, 255, 0.08) 50%,
+rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.play-card--hoverable:hover {
+  transform: translateY(-4px) scale(1.1); 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 
+  0 0 1px rgba(255, 255, 255, 0.2);
+  z-index: 11; 
+}
+
+.play-card--selected {
+  transform: translateY(-4px) scale(1.1); 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 
+  0 0 1px rgba(255, 255, 255, 0.2);
+  z-index: 11; 
+}
