@@ -17,7 +17,7 @@ export function CardRenderer({
   const combinedClassName = ["play-card", className].filter(Boolean).join(" ");
   return (
     <img
-      src={cardPath}
+      src={new URL(cardPath, import.meta.url).href}
       className={`${combinedClassName}
         
         ${
