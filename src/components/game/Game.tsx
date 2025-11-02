@@ -691,6 +691,24 @@ export default function Game({ roomData }: GameProps) {
           )
       )
     );
+
+    try {
+      const roomRef = doc(database, "rooms", roomData.id);
+      await updateDoc(roomRef, {
+        gameState: {
+          ...localRoomData.gameState,
+          hands: {
+            ...localRoomData.gameState.hands,
+            [user.uid]: updatedHand,
+          },
+        },
+      });
+    } catch (err) {
+      console.error(
+        "Failed to update game state after swapping cards in hand:",
+        err
+      );
+    }
   }
 
   const navigate = useNavigate();
@@ -852,6 +870,11 @@ export default function Game({ roomData }: GameProps) {
               </div>
             </>
           )}
+          {selectedCards.length == 0 &&
+            didPlayerDrawCard &&
+            !didPlayerPerformAction && (
+              <p>Select a card to perform an action.</p>
+            )}
           {selectedCards.length == 1 &&
             didPlayerDrawCard &&
             !didPlayerPerformAction && (
