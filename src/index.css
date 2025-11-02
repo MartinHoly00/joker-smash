@@ -16,6 +16,16 @@
   -moz-osx-font-smoothing: grayscale;
   width: 100vw;
   height: 100vh;
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  #root {
+    overflow-y: visible;
+  }
+  .game-board {
+    padding-top: 4rem;
+  }
 }
 
 body{

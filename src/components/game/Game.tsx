@@ -19,6 +19,7 @@ import { ThrowPile } from "./ThrowPile";
 import type { Card } from "../../data/Card";
 import { WinModal } from "./WinModal";
 import { useNavigate } from "react-router-dom";
+import { ImInfo } from "react-icons/im";
 
 const getCardRank = (card: Card, aceHigh: boolean = true): number => {
   if (card.type === "joker") {
@@ -45,6 +46,11 @@ type GameProps = {
 export default function Game({ roomData }: GameProps) {
   const [showHelperTextJokerReplacement, setShowHelperTextJokerReplacement] =
     useState<boolean>(false);
+  const [
+    showHelperButtonsPlaceCardToBoard,
+    setShowHelperButtonsPlaceCardToBoard,
+  ] = useState<boolean>(false);
+  const [showGameInfo, setShowGameInfo] = useState<boolean>(false);
 
   const { user } = useAuth();
   const [users, setUsers] = useState<Record<string, User>>({});
@@ -271,6 +277,7 @@ export default function Game({ roomData }: GameProps) {
       console.error("Failed to update game state after drawing card:", err);
     }
   }
+
   async function updateGameAfterAction() {
     const newGameState = { ...localRoomData.gameState };
     newGameState.hands[user!.uid] = localRoomData.gameState.hands[user!.uid];
@@ -331,6 +338,7 @@ export default function Game({ roomData }: GameProps) {
     if (!user) return;
     if (didPlayerDrawCard)
       return alert("You have already drawn a card this turn.");
+    if (turnPhase !== "draw") return alert("You are not in the draw phase.");
 
     const { updatedDeck, updatedHand } = deckUtils.takeCard(
       roomData.gameState.deck,
@@ -352,6 +360,7 @@ export default function Game({ roomData }: GameProps) {
     localStorage.setItem(`${localRoomData.id}-didPlayerDrawCard`, "true");
     //after end of turn, sync with backend
   }
+
   async function takeCardFromThrowPile() {
     if (!user) return;
     if (didPlayerDrawCard)
@@ -361,6 +370,7 @@ export default function Game({ roomData }: GameProps) {
       4 * localRoomData.currentPlayerIds.length
     )
       return alert("You can draw from throw pile starting from turn 4.");
+    if (turnPhase !== "draw") return alert("You are not in the draw phase.");
 
     const { updatedDeck, updatedHand } = deckUtils.takeTopCardFromThrowPile(
       localRoomData.gameState.throwPile,
@@ -382,6 +392,7 @@ export default function Game({ roomData }: GameProps) {
     localStorage.setItem(`${localRoomData.id}-didPlayerDrawCard`, "true");
     //after end of turn, sync with backend
   }
+
   //function will run on clicking on joker on board after selecting a card from hand
   async function replaceJokerOnBoard(
     playersBoardId: string,
@@ -453,7 +464,7 @@ export default function Game({ roomData }: GameProps) {
     //remove from selected cards
     setSelectedCards([]);
     /*     setDidPlayerDrawCard(true);
-    localStorage.setItem(`${localRoomData.id}-didPlayerDrawCard`, "true"); */
+      localStorage.setItem(`${localRoomData.id}-didPlayerDrawCard`, "true"); */
   }
 
   //function for second player action
@@ -491,6 +502,7 @@ export default function Game({ roomData }: GameProps) {
     setDidPlayerPerformAction(true);
     localStorage.setItem(`${localRoomData.id}-didPlayerPerformAction`, "true");
   }
+
   async function placeSetOnBoard(userId: string) {
     if (!user) return;
     if (user.uid !== userId) return;
@@ -656,6 +668,127 @@ export default function Game({ roomData }: GameProps) {
     }
   }
 
+  async function addCardToBoardSet(
+    targetPlayerId: string,
+    targetMeldId: string
+  ) {
+    if (!user) return;
+    if (!didPlayerDrawCard) return alert("You need to draw a card first.");
+    if (didPlayerPerformAction) {
+      return alert("Wait for your next turn to perform another action.");
+    }
+    if (
+      localRoomData.gameState.turnNumber <
+      4 * localRoomData.currentPlayerIds.length
+    ) {
+      return alert("You can add cards to board sets starting from turn 4.");
+    }
+    if (selectedCards.length === 0) {
+      return alert("You must select at least one card from your hand to add.");
+    }
+    if (selectedCards.some((c) => c.playerId !== user.uid)) {
+      return alert("You can only add your own cards.");
+    }
+
+    const cardIndexes = selectedCards.map((c) => c.cardIndex);
+    const cardsToAdd = cardIndexes.map(
+      (index) => localRoomData.gameState.hands[user.uid][index]
+    );
+
+    const targetSet =
+      localRoomData.gameState.board[targetPlayerId]?.[targetMeldId];
+    if (!targetSet) {
+      console.error("Target set not found:", targetPlayerId, targetMeldId);
+      return alert("The set you are trying to add to does not exist.");
+    }
+
+    const newPotentialSet = [...targetSet, ...cardsToAdd];
+    const validationResult = deckUtils.isPossibleSet(newPotentialSet);
+
+    if (!validationResult.isValid) {
+      return alert(`Invalid addition: ${validationResult.error}`);
+    }
+
+    const updatedHand = localRoomData.gameState.hands[user.uid].filter(
+      (_, index) => !cardIndexes.includes(index)
+    );
+
+    const realCards = newPotentialSet.filter((c) => c.type !== "joker");
+    const jokers = newPotentialSet.filter((c) => c.type === "joker");
+    let finalSortedSet: Card[] = [];
+
+    if (realCards.length === 0) {
+      finalSortedSet = [...newPotentialSet]; // All jokers
+    } else {
+      const firstValue = realCards[0].value;
+      const isGroup = realCards.every((c) => c.value === firstValue);
+
+      const firstSuit = realCards[0].type;
+      const isSequence = realCards.every((c) => c.type === firstSuit);
+
+      if (isGroup) {
+        finalSortedSet = [...newPotentialSet].sort((a, b) => {
+          return getCardRank(a, true) - getCardRank(b, true);
+        });
+      } else if (isSequence) {
+        const hasTwo = realCards.some((c) => c.value === 2);
+        const hasAce = realCards.some((c) => c.value === "A");
+        const isAceHigh = !(hasTwo && hasAce); // Ace is low if 2 is also present
+
+        const sortedRanks = realCards
+          .map((c) => getCardRank(c, isAceHigh))
+          .sort((a, b) => a - b);
+
+        const cardsByRank = new Map<number, Card>();
+        realCards.forEach((c) => cardsByRank.set(getCardRank(c, isAceHigh), c));
+
+        const availableJokers = [...jokers];
+        const minRank = sortedRanks[0];
+        const maxRank = sortedRanks[sortedRanks.length - 1];
+
+        for (let rank = minRank; rank <= maxRank; rank++) {
+          if (cardsByRank.has(rank)) {
+            finalSortedSet.push(cardsByRank.get(rank)!);
+          } else if (availableJokers.length > 0) {
+            finalSortedSet.push(availableJokers.pop()!);
+          }
+        }
+        // Add any remaining jokers (e.g., if they were at the ends)
+        finalSortedSet.push(...availableJokers);
+      } else {
+        // Failsafe, though validation should prevent this
+        finalSortedSet = [...newPotentialSet];
+      }
+    }
+
+    // c. Set the new state immutably
+    setLocalRoomData((prev) => ({
+      ...prev,
+      gameState: {
+        ...prev.gameState,
+        hands: {
+          ...prev.gameState.hands,
+          [user.uid]: updatedHand,
+        },
+        board: {
+          ...prev.gameState.board,
+          [targetPlayerId]: {
+            ...prev.gameState.board[targetPlayerId],
+            [targetMeldId]: finalSortedSet, // Update the specific meld
+          },
+        },
+      },
+    }));
+
+    // 5. Cleanup
+    setSelectedCards([]);
+
+    // This action doesn't count as "performing an action" for the turn,
+    // so the player still needs to throw a card away.
+    // We also don't sync with the backend here, as that happens
+    // after the player throws a card (updateGameAfterAction).
+  }
+
   //you can swap cards in hand whenever you want
   async function swapCardsInHand(
     playerId: string,
@@ -749,44 +882,36 @@ export default function Game({ roomData }: GameProps) {
         ))}
       </div>
 
-      <h2>Game Component</h2>
-      <p>Room ID: {localRoomData.id}</p>
-      <br />
-      <p>
-        Turn:{" "}
-        {localRoomData.gameState.turnNumber /
-          localRoomData.currentPlayerIds.length}
-      </p>
-      <br />
+      <h2 className="game-title">{localRoomData.name}</h2>
 
-      <DeckOfCards
-        numberOfCards={localRoomData.gameState.deck.length}
-        pickCard={takeCardFromDeck}
-      />
-
-      <h3>Throw Pile:</h3>
-      {localRoomData.gameState.throwPile && (
-        <ThrowPile
-          cards={localRoomData.gameState.throwPile}
-          takeCard={takeCardFromThrowPile}
+      <div className="game-cards">
+        <DeckOfCards
+          numberOfCards={localRoomData.gameState.deck.length}
+          pickCard={takeCardFromDeck}
         />
-      )}
 
-      {/* render all sets for each player */}
+        {localRoomData.gameState.throwPile && (
+          <ThrowPile
+            cards={localRoomData.gameState.throwPile}
+            takeCard={takeCardFromThrowPile}
+          />
+        )}
+      </div>
+
       <div className="board-sets__container">
         {Object.entries(localRoomData.gameState.board).map(
           ([playerId, sets]) => (
             // 'sets' is now Record<string, Card[]>
             <div key={playerId} className="player-board-sets__container">
               <h4>
-                Player ID: {playerId}{" "}
+                {users[playerId]
+                  ? users[playerId].displayName || "Unknown"
+                  : "Unknown"}
+                &nbsp;
                 {user?.uid === playerId ? <strong>(You)</strong> : null}
               </h4>
               <div className="sets-container">
-                {/* Use Object.entries to iterate over the 'sets' object */}
                 {Object.entries(sets).map(([meldId, set]) => (
-                  // 'meldId' is the string key (e.g., 'playerId-0')
-                  // 'set' is the Card[]
                   <div key={meldId} className="set-of-cards__container">
                     {set.map((card, cardIndex) => (
                       <CardRenderer
@@ -794,13 +919,11 @@ export default function Game({ roomData }: GameProps) {
                         cardPath={card.imagePath}
                         isHoverable
                         onClick={() => {
-                          //only allow replacing joker if exactly one card is selected from hand
                           if (
                             card.type === "joker" &&
                             selectedCards.length === 1 &&
                             selectedCards[0].playerId === user?.uid
                           ) {
-                            // --- Pass meldId (string) instead of setIndex ---
                             replaceJokerOnBoard(playerId, meldId, cardIndex);
                           }
                         }}
@@ -814,11 +937,14 @@ export default function Game({ roomData }: GameProps) {
         )}
       </div>
 
-      <p>players hands:</p>
       {Object.entries(localRoomData.gameState.hands).map(([playerId, hand]) => (
         <div key={`${playerId}-hand`}>
-          <h3>Player ID: {playerId}</h3>
-          <h4>{user?.uid == playerId ? <strong>(You)</strong> : null}</h4>
+          <h3>
+            {users[playerId]
+              ? users[playerId].displayName || "Unknown"
+              : "Unknown"}
+            &nbsp;{user?.uid == playerId ? <strong>(You)</strong> : null}
+          </h3>
 
           {hand.map((card, index) => (
             <CardRenderer
@@ -841,73 +967,136 @@ export default function Game({ roomData }: GameProps) {
           ))}
         </div>
       ))}
-      {selectedCards && isPlayerTurn && (
-        <div className="card-actions">
-          <h3>Selected Cards Actions:</h3>
-          {isPlayerTurn && !didPlayerDrawCard && (
+      <div className="player-actions">
+        <h3>Perform action:</h3>
+        <div className="player-actions__buttons">
+          {selectedCards && isPlayerTurn && (
             <>
-              <button onClick={takeCardFromDeck}>Draw Card from deck</button>
-              <button onClick={takeCardFromThrowPile}>
-                Draw Card from Pile
-              </button>
-              <div>
-                {" "}
-                <button
-                  onClick={() =>
-                    setShowHelperTextJokerReplacement(
-                      !showHelperTextJokerReplacement
-                    )
-                  }
-                >
-                  Switch joker on board for your card
-                </button>
-                {showHelperTextJokerReplacement && (
-                  <p>
-                    For swaping card for joker select one of your cards, than
-                    click on the joker
-                  </p>
+              {isPlayerTurn && !didPlayerDrawCard && (
+                <>
+                  <button onClick={takeCardFromDeck}>
+                    Draw Card from deck
+                  </button>
+                  <button onClick={takeCardFromThrowPile}>
+                    Draw Card from Pile
+                  </button>
+                  <div>
+                    <button
+                      onClick={() =>
+                        setShowHelperTextJokerReplacement(
+                          !showHelperTextJokerReplacement
+                        )
+                      }
+                    >
+                      Switch joker on board for your card
+                    </button>
+                    {showHelperTextJokerReplacement && (
+                      <p>
+                        For swaping card for joker select one of your cards,
+                        than click on the joker
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {selectedCards.length == 0 &&
+                didPlayerDrawCard &&
+                !didPlayerPerformAction && (
+                  <p>Select a card to perform an action.</p>
                 )}
-              </div>
+
+              {selectedCards.length == 1 &&
+                didPlayerDrawCard &&
+                !didPlayerPerformAction && (
+                  <>
+                    <button
+                      onClick={() => throwCardAway(selectedCards[0].cardIndex)}
+                    >
+                      Throw Away Selected Card
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setShowHelperButtonsPlaceCardToBoard(
+                          !showHelperButtonsPlaceCardToBoard
+                        )
+                      }
+                    >
+                      Place card to board
+                    </button>
+                    {showHelperButtonsPlaceCardToBoard && (
+                      <div className="helper--place-to-board__container">
+                        {Object.entries(localRoomData.gameState.board).map(
+                          ([ownerId, ownerSets]) => (
+                            <div key={ownerId} className="helper--player-sets">
+                              <p>
+                                {users[ownerId]?.displayName || "Unknown"}
+                                {ownerId === user?.uid ? " (You)" : ""}
+                              </p>
+                              {Object.entries(ownerSets).map(
+                                ([meldId, meldCards]) => (
+                                  <button
+                                    key={`${ownerId}-${meldId}`}
+                                    onClick={() => {
+                                      addCardToBoardSet(ownerId, meldId);
+                                      setShowHelperButtonsPlaceCardToBoard(
+                                        false
+                                      );
+                                    }}
+                                    title="Add to this set"
+                                  >
+                                    <span>Add to set</span>
+                                    <div>
+                                      {meldCards.map((c, i) => (
+                                        <img
+                                          key={`${c.name}-${i}`}
+                                          src={c.imagePath}
+                                          alt={c.name}
+                                          draggable={false}
+                                        />
+                                      ))}
+                                    </div>
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+              {selectedCards.length > 2 &&
+                didPlayerDrawCard &&
+                !didPlayerPerformAction && (
+                  <button
+                    onClick={() => placeSetOnBoard(selectedCards[0].playerId)}
+                  >
+                    Place set on board
+                  </button>
+                )}
             </>
           )}
-          {selectedCards.length == 0 &&
-            didPlayerDrawCard &&
-            !didPlayerPerformAction && (
-              <p>Select a card to perform an action.</p>
-            )}
-          {selectedCards.length == 1 &&
-            didPlayerDrawCard &&
-            !didPlayerPerformAction && (
-              <button onClick={() => throwCardAway(selectedCards[0].cardIndex)}>
-                Throw Away Selected Card
-              </button>
-            )}
-          {selectedCards.length > 2 &&
-            didPlayerDrawCard &&
-            !didPlayerPerformAction && (
+          {selectedCards.length == 2 &&
+            selectedCards[0].playerId === selectedCards[1].playerId && (
               <button
-                onClick={() => placeSetOnBoard(selectedCards[0].playerId)}
+                onClick={() =>
+                  swapCardsInHand(
+                    selectedCards[0].playerId,
+                    selectedCards[0].cardIndex,
+                    selectedCards[1].cardIndex
+                  )
+                }
               >
-                Place set on board
+                Swap Selected Cards in Hand
               </button>
             )}
-        </div>
-      )}
-      <div>
-        {selectedCards.length == 2 &&
-          selectedCards[0].playerId === selectedCards[1].playerId && (
-            <button
-              onClick={() =>
-                swapCardsInHand(
-                  selectedCards[0].playerId,
-                  selectedCards[0].cardIndex,
-                  selectedCards[1].cardIndex
-                )
-              }
-            >
-              Swap Selected Cards in Hand
-            </button>
+          {!isPlayerTurn && (
+            <p>Wait for your turn or select card to perform action</p>
           )}
+        </div>
       </div>
       {showWinAlert && (
         <WinModal
@@ -915,6 +1104,46 @@ export default function Game({ roomData }: GameProps) {
           onClose={handleCloseGame}
           winnerName={localRoomData.gameState.winnerName ?? "Unknown"}
         />
+      )}
+      <button
+        className="show-game-info"
+        onClick={() => setShowGameInfo(!showGameInfo)}
+        aria-label="Show game info"
+      >
+        <ImInfo />
+      </button>
+      {showGameInfo && (
+        <div className="info-modal__container">
+          <p>
+            <span>Room id:</span>&nbsp;<span>{localRoomData.id}</span>
+          </p>
+          <p>
+            <span>Name</span>&nbsp;<span>{localRoomData.name}</span>
+          </p>
+          <p>
+            <span>Number of decks:</span>&nbsp;
+            <span>{localRoomData.numberOfDecks}</span>
+          </p>
+          <p>
+            <span>Current turn:</span>&nbsp;
+            <span>
+              {Math.floor(
+                localRoomData.gameState.turnNumber /
+                  localRoomData.currentPlayerIds.length
+              )}
+            </span>
+          </p>
+          {localRoomData.password && (
+            <p>
+              <span>Password:</span>&nbsp;<span>{localRoomData.password}</span>
+            </p>
+          )}
+          <p>
+            <span>Time for turn:</span>&nbsp;
+            <span>{localRoomData.timerForTurns}</span>
+          </p>
+          <button onClick={handleCloseGame}>Leave game</button>
+        </div>
       )}
     </div>
   );
