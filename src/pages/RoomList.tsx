@@ -30,11 +30,21 @@ export function RoomList() {
   }
 
   return (
-    <div>
-      Room List Page - Coming Soon!
+    <div className="room-list">
+      <h1>Join rooms:</h1>
       {rooms.map((room) => (
-        <div key={room.id} onClick={() => navigate(`/online/${room.id}`)}>
-          {room.name}
+        <div
+          key={room.id}
+          onClick={() => navigate(`/online/${room.id}`)}
+          className="room-item"
+        >
+          <span>{room.name}</span>
+
+          <span>{room.password ? "Password" : undefined}</span>
+          <p>
+            <span>Room id:&nbsp;</span>
+            <span>{room.id}</span>
+          </p>
         </div>
       ))}
     </div>

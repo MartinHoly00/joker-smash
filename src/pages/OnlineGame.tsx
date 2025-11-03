@@ -17,6 +17,7 @@ import { Deck } from "../data/Deck";
 import { deckUtils } from "../utils/deck";
 import type { Card } from "../data/Card";
 import Game from "../components/game/Game";
+import "./OnlineGame.css";
 
 export function OnlineGame() {
   const navigate = useNavigate();
@@ -37,15 +38,6 @@ export function OnlineGame() {
     }
     realtimeUpdate();
   }, [id]);
-
-  /*   useEffect(() => {
-    if (roomData?.playerLimit === roomData?.currentPlayerIds.length) {
-      navigate("/");
-    }
-    if (!user) {
-      navigate("/");
-    }
-  }, [roomData]); */
 
   useEffect(() => {
     if (!roomData || !user) return;
@@ -269,33 +261,59 @@ export function OnlineGame() {
           {roomData && roomData.gameState.isRunning ? (
             <Game roomData={roomData} />
           ) : (
-            <>
-              <h1>Online Game Room: {roomData?.name}</h1>
-              <h2>id: {roomData?.id}</h2>
-              <MagnifyingGlass
-                visible={true}
-                height="80"
-                width="80"
-                ariaLabel="magnifying-glass-loading"
-                wrapperStyle={{}}
-                wrapperClass="magnifying-glass-wrapper"
-                glassColor="#c0efff"
-                color="#e15b64"
-              />
-              <p>
+            <div className="game-lobby__container">
+              <h1 className="game-lobby__title">
+                Online Game Room: {roomData?.name}
+              </h1>
+              <h2 className="game-lobby__room-id">id: {roomData?.id}</h2>
+
+              <div className="game-lobby__loader">
+                <MagnifyingGlass
+                  visible={true}
+                  height="80"
+                  width="80"
+                  ariaLabel="magnifying-glass-loading"
+                  wrapperStyle={{}}
+                  wrapperClass="magnifying-glass-wrapper"
+                  glassColor="#c0efff"
+                  color="#e15b64"
+                />
+              </div>
+
+              <p className="game-lobby__status">
                 {roomData?.playerLimit == roomData?.currentPlayerIds.length
                   ? "Waiting for host to start the game"
                   : "Waiting for players to join"}{" "}
-                {roomData?.currentPlayerIds.length}/{roomData?.playerLimit}
+                <span className="game-lobby__player-count">
+                  {roomData?.currentPlayerIds.length}/{roomData?.playerLimit}
+                </span>
               </p>
-              <button onClick={leaveRoom}>Leave Room</button>
-              {roomData?.hostPlayerId === user?.uid && (
-                <>
-                  <button onClick={startGame}>Start Game</button>
-                  <button onClick={closeRoom}>Close Room</button>
-                </>
-              )}
-            </>
+
+              <div className="game-lobby__actions">
+                {roomData?.hostPlayerId === user?.uid && (
+                  <button
+                    onClick={startGame}
+                    className="game-lobby__button game-lobby__button--start"
+                  >
+                    Start Game
+                  </button>
+                )}
+                <button
+                  onClick={leaveRoom}
+                  className="game-lobby__button game-lobby__button--leave"
+                >
+                  Leave Room
+                </button>
+                {roomData?.hostPlayerId === user?.uid && (
+                  <button
+                    onClick={closeRoom}
+                    className="game-lobby__button game-lobby__button--close"
+                  >
+                    Close Room
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </>
       )}

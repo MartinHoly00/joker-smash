@@ -1,7 +1,16 @@
 import { useState } from "react";
 import "./CreateOnlineGame.css"; // Import the new CSS file
 import { useAuth } from "../providers/UserProvider";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
 import { database } from "../auth/config";
 import { useNavigate, Link } from "react-router-dom"; // Import Link
 import type { RoomData, RoomInput } from "../types/room";
@@ -46,6 +55,24 @@ export function CreateOnlineGame() {
     };
 
     console.log("Creating room: ", newRoom);
+
+    try {
+      const roomsColRef = collection(database, "rooms");
+      const q = query(
+        roomsColRef,
+        where("currentPlayerIds", "array-contains", user.uid)
+      );
+      const roomsSnapshot = await getDocs(q);
+      for (const docSnap of roomsSnapshot.docs) {
+        const id = docSnap.id;
+        // If you prefer to be extra safe, skip deleting the newRoom id:
+        if (id === newRoom.id) continue;
+        await deleteDoc(doc(database, "rooms", id));
+        console.log("Deleted room:", id);
+      }
+    } catch (err) {
+      console.error("Error cleaning up old rooms:", err);
+    }
 
     try {
       const roomDoc = doc(database, "rooms", newRoom.id);
