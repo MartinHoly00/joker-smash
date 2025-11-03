@@ -514,6 +514,33 @@ export default function Game({ roomData }: GameProps) {
       4 * localRoomData.currentPlayerIds.length
     )
       return alert("You can place sets on board starting from turn 4.");
+    //check that first set placed by each player must be "clean": 1,2,3 - no jokers, no sets like 5,5,5
+    if (
+      localRoomData.gameState.board[user.uid] === undefined ||
+      Object.keys(localRoomData.gameState.board[user.uid] || {}).length === 0
+    ) {
+      const cardIndexesForSet: number[] = selectedCards
+        .filter((c) => c.playerId === userId)
+        .map((c) => c.cardIndex);
+      const selectedCardsForInitialSet: Card[] = cardIndexesForSet.map(
+        (index) => localRoomData.gameState.hands[user.uid][index]
+      );
+      const initialSetValidation = deckUtils.isPossibleSet(
+        selectedCardsForInitialSet
+      );
+      if (!initialSetValidation.isValid) {
+        alert("Your first set must be a clean set without jokers.");
+        return;
+      }
+      //check if all cards dont have same value (no groups allowed)
+      const allSameValue = selectedCardsForInitialSet.every(
+        (c) => c.value === selectedCardsForInitialSet[0].value
+      );
+      if (allSameValue) {
+        alert("Your first set must be a sequence, groups are not allowed.");
+        return;
+      }
+    }
 
     const cardIndexes: number[] = selectedCards
       .filter((c) => c.playerId === userId)
@@ -968,7 +995,7 @@ export default function Game({ roomData }: GameProps) {
         </div>
       ))}
       <div className="player-actions">
-        <h3>Perform action:</h3>
+        <h3 className="perform-action">Perform action:</h3>
         <div className="player-actions__buttons">
           {selectedCards && isPlayerTurn && (
             <>
