@@ -5,6 +5,7 @@ import { OnlineGame } from "./pages/OnlineGame";
 import { CreateOnlineGame } from "./pages/CreateOnlineGame";
 import { InfoPage } from "./pages/InfoPage";
 import { RoomList } from "./pages/RoomList";
+import { Toaster } from "sonner";
 
 function App() {
   const router = createHashRouter([
@@ -14,7 +15,12 @@ function App() {
     { path: "/create-online", element: <CreateOnlineGame /> },
     { path: "/rooms", element: <RoomList /> },
   ]);
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster position="bottom-left" richColors />
+    </>
+  );
 }
 
 export default App;

@@ -18,6 +18,7 @@ import { deckUtils } from "../utils/deck";
 import type { Card } from "../data/Card";
 import Game from "../components/game/Game";
 import "./OnlineGame.css";
+import { toast } from "sonner";
 
 export function OnlineGame() {
   const navigate = useNavigate();
@@ -40,14 +41,11 @@ export function OnlineGame() {
   }, [id]);
 
   useEffect(() => {
-    if (!roomData || !user) return;
-    if (roomData && user && !showPasswordPrompt) {
-      if (
-        !roomData.currentPlayerIds.includes(user.uid) &&
-        roomData.currentPlayerIds.length < roomData.playerLimit
-      ) {
-        joinRoom();
-      }
+    if (!roomData) return;
+    if (!user) {
+      toast.error("Please sign in to join the room.");
+      navigate("/");
+      return;
     }
     if (roomData.password && roomData.hostPlayerId !== user?.uid) {
       const savedPassword = localStorage.getItem(
@@ -60,6 +58,14 @@ export function OnlineGame() {
       }
     } else {
       setShowPasswordPrompt(false);
+    }
+    if (roomData && user && !roomData.password) {
+      if (
+        !roomData.currentPlayerIds.includes(user.uid) &&
+        roomData.currentPlayerIds.length < roomData.playerLimit
+      ) {
+        joinRoom();
+      }
     }
   }, [roomData]);
 
@@ -133,7 +139,7 @@ export function OnlineGame() {
     if (!roomData || !user) return;
     if (roomData.hostPlayerId !== user.uid) return;
     if (roomData.currentPlayerIds.length < 2) {
-      return alert("At least 2 players are required to start the game.");
+      return toast.error("At least 2 players are required to start the game.");
     }
     const roomRef = doc(database, "rooms", roomData.id);
 
@@ -231,6 +237,7 @@ export function OnlineGame() {
     if (passwordInput === roomData?.password) {
       setShowPasswordPrompt(false);
       localStorage.setItem(`room-${roomData.id}-password`, passwordInput);
+      joinRoom();
     } else {
       setTryCount(tryCount + 1);
       if (tryCount + 1 >= maxTries) {

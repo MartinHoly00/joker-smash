@@ -102,7 +102,7 @@ export const deckUtils = {
 
   isPossibleSet(cards: Card[]): SetValidationResult {
     if (cards.length < 3) {
-      return { isValid: false, error: "Sada musí mít alespoň 3 karty." };
+      return { isValid: false, error: "The set must have at least 3 cards." };
     }
 
     const jokers = cards.filter((c) => c.type === "joker");
@@ -118,7 +118,7 @@ export const deckUtils = {
         // Toto není chyba, jen to není skupina (může to být postupka žolíků)
         return {
           isValid: false,
-          error: "Interní: Nelze ověřit skupinu bez reálných karet.",
+          error: "Internal: Cannot verify group without real cards.",
         };
       }
 
@@ -126,8 +126,22 @@ export const deckUtils = {
       if (!cards.every((c) => c.value === firstValue)) {
         return {
           isValid: false,
-          error: "Neplatná skupina: Všechny karty musí mít stejnou hodnotu.",
+          error: "Invalid group: All cards must have the same value.",
         };
+      }
+
+      //check if every card has different suit
+
+      for (const card of cards) {
+        if (card.type === "joker") continue;
+        const sameSuitCards = cards.filter((c) => c.type === card.type);
+        if (sameSuitCards.length > 1) {
+          return {
+            isValid: false,
+            error:
+              "Invalid group: The set contains duplicate cards (e.g., 2x seven of hearts).",
+          };
+        }
       }
 
       const suitCounts = cards.reduce((acc, card) => {
@@ -139,13 +153,16 @@ export const deckUtils = {
         return {
           isValid: false,
           error:
-            "Neplatná skupina: Sada obsahuje více než 2 karty stejné barvy (např. 3x srdcová sedma).",
+            "Invalid group: The set contains more than 2 cards of the same suit.",
         };
       }
 
       // Kontrola celkové délky (měla by být již pokryta vnější funkcí, ale pro jistotu)
       if (cards.length + jokers < 3) {
-        return { isValid: false, error: "Sada musí mít alespoň 3 karty." };
+        return {
+          isValid: false,
+          error: "The set must contain at least 3 cards.",
+        };
       }
 
       return { isValid: true, error: null };
@@ -160,14 +177,14 @@ export const deckUtils = {
       if (cards.length === 0) {
         return jokers >= 3
           ? { isValid: true, error: null }
-          : { isValid: false, error: "Sada musí mít alespoň 3 karty." };
+          : { isValid: false, error: "The set must contain at least 3 cards." };
       }
 
       const firstSuit = cards[0].type;
       if (!cards.every((c) => c.type === firstSuit)) {
         return {
           isValid: false,
-          error: "Neplatná postupka: Všechny karty musí mít stejnou barvu.",
+          error: "Invalid sequence: All cards must be of the same suit.",
         };
       }
 
@@ -272,7 +289,7 @@ export const deckUtils = {
     return {
       isValid: false,
       error:
-        "Neplatná sada: Karty netvoří ani platnou skupinu (stejné hodnoty), ani postupku (stejná barva).",
+        "Invalid set: The cards do not form a valid group (same values) or a sequence (same suit).",
     };
   },
 
@@ -290,5 +307,24 @@ export const deckUtils = {
       default:
         return Number(card.value);
     }
+  },
+
+  removeSetFromBoard(
+    setIndexKey: string,
+    board: Record<string, Record<string, Card[]>>,
+    playerId: string
+  ) {
+    const newBoard = { ...board };
+    const playerMelds = newBoard[playerId] ? { ...newBoard[playerId] } : {};
+
+    delete playerMelds[setIndexKey];
+
+    newBoard[playerId] = playerMelds;
+
+    return newBoard;
+  },
+
+  shuffleCards(cards: Card[]) {
+    return arrayShuffle(cards);
   },
 };

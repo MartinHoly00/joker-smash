@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { User } from "../../types/auth";
 import type { RoomData } from "../../types/room";
 import { database } from "../../auth/config";
@@ -20,6 +20,7 @@ import type { Card } from "../../data/Card";
 import { WinModal } from "./WinModal";
 import { useNavigate } from "react-router-dom";
 import { ImInfo } from "react-icons/im";
+import { toast } from "sonner";
 
 const getCardRank = (card: Card, aceHigh: boolean = true): number => {
   if (card.type === "joker") {
@@ -44,6 +45,7 @@ type GameProps = {
 };
 
 export default function Game({ roomData }: GameProps) {
+  const autoActionHandledRef = useRef<boolean>(false);
   const [showHelperTextJokerReplacement, setShowHelperTextJokerReplacement] =
     useState<boolean>(false);
   const [
@@ -65,6 +67,12 @@ export default function Game({ roomData }: GameProps) {
   const [turnPhase, setTurnPhase] = useState<"idle" | "draw" | "action">(
     "idle"
   );
+
+  const [sortedPlayers, setSortedPlayers] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSortedPlayers(localRoomData.currentPlayerIds.slice().sort());
+  }, [localRoomData.currentPlayerIds]);
 
   // per-phase timer (seconds) and current turn phase
   const [timeLeftSec, setTimeLeftSec] = useState<number>(
@@ -160,17 +168,52 @@ export default function Game({ roomData }: GameProps) {
   // timer that resets per phase and logs remaining seconds
   useEffect(() => {
     if (turnPhase === "idle") return;
+    if (!isPlayerTurn) return;
+    autoActionHandledRef.current = false;
+
     setTimeLeftSec(localRoomData.timerForTurns);
     const interval = setInterval(() => {
       setTimeLeftSec((prev) => {
         const next = Math.max(prev - 1, 0);
         console.log(`Time left [${turnPhase}]:`, next);
+        if (next === 0 && !autoActionHandledRef.current) {
+          autoActionHandledRef.current = true; // ensure runs once
+          if (turnPhase === "draw" && !didPlayerDrawCard) {
+            takeCardFromDeck();
+            toast.info(
+              "Time's up! You drew a card from the deck automatically."
+            );
+          } else if (turnPhase === "action" && !didPlayerPerformAction) {
+            // guard in case hand is empty
+            const handLen =
+              localRoomData.gameState.hands[user!.uid]?.length ?? 0;
+            if (handLen > 0) {
+              throwCardAway(handLen - 1);
+            }
+
+            toast.info(
+              "Time's up! Your last card was thrown away automatically."
+            );
+          }
+        }
         return next;
       });
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [turnPhase, localRoomData.timerForTurns]);
+    return () => {
+      clearInterval(interval);
+      // reset so next time the phase starts it can run again
+      autoActionHandledRef.current = false;
+    };
+  }, [
+    turnPhase,
+    localRoomData.timerForTurns,
+    isPlayerTurn,
+    didPlayerDrawCard,
+    didPlayerPerformAction,
+    localRoomData.gameState.hands,
+    user,
+  ]);
 
   useEffect(() => {
     if (
@@ -266,6 +309,36 @@ export default function Game({ roomData }: GameProps) {
     }
   }, [turnPhase]);
 
+  //check if the deck still have cards, if not reshuffle the throw pile into deck
+  useEffect(() => {
+    if (localRoomData.gameState.deck.length === 0) {
+      const newDeck = deckUtils.shuffleCards(localRoomData.gameState.throwPile);
+      setLocalRoomData((prev) => ({
+        ...prev,
+        gameState: {
+          ...prev.gameState,
+          deck: newDeck,
+          throwPile: [],
+        },
+      }));
+      //save into database
+      try {
+        const roomRef = doc(database, "rooms", roomData.id);
+        updateDoc(roomRef, {
+          gameState: {
+            ...localRoomData.gameState,
+            deck: newDeck,
+            throwPile: [],
+          },
+        });
+      } catch (err) {
+        console.error("Failed to reshuffle deck from throw pile:", err);
+      }
+
+      toast.info("Deck was empty, reshuffled the throw pile into the deck.");
+    }
+  }, [localRoomData.gameState.deck]);
+
   async function updateDatabaseAfterDraw() {
     const newGameState = { ...localRoomData.gameState };
     newGameState.hands[user!.uid] = localRoomData.gameState.hands[user!.uid];
@@ -337,8 +410,9 @@ export default function Game({ roomData }: GameProps) {
   async function takeCardFromDeck() {
     if (!user) return;
     if (didPlayerDrawCard)
-      return alert("You have already drawn a card this turn.");
-    if (turnPhase !== "draw") return alert("You are not in the draw phase.");
+      return toast.error("You have already drawn a card this turn.");
+    if (turnPhase !== "draw")
+      return toast.error("You are not in the draw phase.");
 
     const { updatedDeck, updatedHand } = deckUtils.takeCard(
       roomData.gameState.deck,
@@ -364,13 +438,14 @@ export default function Game({ roomData }: GameProps) {
   async function takeCardFromThrowPile() {
     if (!user) return;
     if (didPlayerDrawCard)
-      return alert("You have already drawn a card this turn.");
+      return toast.error("You have already drawn a card this turn.");
     if (
       localRoomData.gameState.turnNumber <
       4 * localRoomData.currentPlayerIds.length
     )
-      return alert("You can draw from throw pile starting from turn 4.");
-    if (turnPhase !== "draw") return alert("You are not in the draw phase.");
+      return toast.info("You can draw from throw pile starting from turn 4.");
+    if (turnPhase !== "draw")
+      return toast.error("You are not in the draw phase.");
 
     const { updatedDeck, updatedHand } = deckUtils.takeTopCardFromThrowPile(
       localRoomData.gameState.throwPile,
@@ -404,8 +479,10 @@ export default function Game({ roomData }: GameProps) {
       localRoomData.gameState.turnNumber <
       4 * localRoomData.currentPlayerIds.length
     )
-      return alert("You can replace jokers on board starting from turn 4.");
-    if (!didPlayerDrawCard) return alert("You need to draw a card first.");
+      return toast.info(
+        "You can replace jokers on board starting from turn 4."
+      );
+    if (!didPlayerDrawCard) return toast.info("You need to draw a card first.");
 
     const playerBoardSets = localRoomData.gameState.board[playersBoardId];
     if (!playerBoardSets) return;
@@ -425,7 +502,7 @@ export default function Game({ roomData }: GameProps) {
 
     const isReplacementValid = deckUtils.isPossibleSet(setOfCards);
     if (!isReplacementValid.isValid) {
-      alert("Replacement would invalidate the set.");
+      toast.error("Replacement would invalidate the set.");
       // Revert the mutation
       setOfCards[jokerCardIndex] = jokerCard;
       return;
@@ -440,12 +517,40 @@ export default function Game({ roomData }: GameProps) {
     updatedHand.push(jokerCard);
 
     // --- Create a new object for the player's board sets for immutable update ---
-    const newPlayerBoardSets = {
-      ...playerBoardSets,
-      [meldId]: setOfCards, // Add the mutated (and validated) set
-    };
 
-    //update state
+    const newPlayerBoardSets = { ...playerBoardSets };
+
+    let newThrowPile = localRoomData.gameState.throwPile || [];
+
+    // Build list of real cards (no jokers) in the updated set
+    const realCardsAfterReplace = setOfCards.filter((c) => c.type !== "joker");
+
+    if (realCardsAfterReplace.length >= 4) {
+      const firstValue = realCardsAfterReplace[0].value;
+      const allSameValue = realCardsAfterReplace.every(
+        (c) => c.value === firstValue
+      );
+      const uniqueSuits = new Set(realCardsAfterReplace.map((c) => c.type));
+
+      // prepend the (sorted) set to throw pile
+      newThrowPile = [...realCardsAfterReplace, ...newThrowPile];
+
+      if (allSameValue && uniqueSuits.size === 4) {
+        // remove the meld from the player's board
+        delete newPlayerBoardSets[meldId];
+        toast.success(
+          "Set of four cards with same value and different suits removed from board!"
+        );
+      } else {
+        // store the updated set back (keep as-is)
+        newPlayerBoardSets[meldId] = setOfCards;
+      }
+    } else {
+      // not a special case — just store the updated set
+      newPlayerBoardSets[meldId] = setOfCards;
+    }
+
+    // update local state with new hand, board and throw pile
     setLocalRoomData((prev) => ({
       ...prev,
       gameState: {
@@ -456,8 +561,9 @@ export default function Game({ roomData }: GameProps) {
         },
         board: {
           ...prev.gameState.board,
-          [playersBoardId]: newPlayerBoardSets, // Use the new object
+          [playersBoardId]: newPlayerBoardSets,
         },
+        throwPile: newThrowPile,
       },
     }));
 
@@ -470,9 +576,9 @@ export default function Game({ roomData }: GameProps) {
   //function for second player action
   async function throwCardAway(handCardIndex: number) {
     if (!user) return;
-    if (!didPlayerDrawCard) return alert("You need to draw a card first.");
+    if (!didPlayerDrawCard) return toast.info("You need to draw a card first.");
     if (didPlayerPerformAction)
-      return alert("Wait for your next turn to perform another action.");
+      return toast.error("Wait for your next turn to perform another action.");
 
     const { updatedDeck, updatedHand } = deckUtils.throwCardAway(
       localRoomData.gameState.hands[user.uid],
@@ -506,14 +612,14 @@ export default function Game({ roomData }: GameProps) {
   async function placeSetOnBoard(userId: string) {
     if (!user) return;
     if (user.uid !== userId) return;
-    if (!didPlayerDrawCard) return alert("You need to draw a card first.");
+    if (!didPlayerDrawCard) return toast.info("You need to draw a card first.");
     if (didPlayerPerformAction)
-      return alert("Wait for your next turn to perform another action.");
+      return toast.error("Wait for your turn to perform another action.");
     if (
       localRoomData.gameState.turnNumber <
       4 * localRoomData.currentPlayerIds.length
     )
-      return alert("You can place sets on board starting from turn 4.");
+      return toast.info("You can place sets on board starting from turn 4.");
     //check that first set placed by each player must be "clean": 1,2,3 - no jokers, no sets like 5,5,5
     if (
       localRoomData.gameState.board[user.uid] === undefined ||
@@ -529,7 +635,7 @@ export default function Game({ roomData }: GameProps) {
         selectedCardsForInitialSet
       );
       if (!initialSetValidation.isValid) {
-        alert("Your first set must be a clean set without jokers.");
+        toast.info("Your first set must be a clean set without jokers.");
         return;
       }
       //check if all cards dont have same value (no groups allowed)
@@ -537,10 +643,14 @@ export default function Game({ roomData }: GameProps) {
         (c) => c.value === selectedCardsForInitialSet[0].value
       );
       if (allSameValue) {
-        alert("Your first set must be a sequence, groups are not allowed.");
+        toast.info(
+          "Your first set must be a sequence, groups are not allowed."
+        );
         return;
       }
     }
+
+    //on first move you need to place sets that sum to at least 42 points
 
     const cardIndexes: number[] = selectedCards
       .filter((c) => c.playerId === userId)
@@ -553,7 +663,7 @@ export default function Game({ roomData }: GameProps) {
     //validate set
     const validationResult = deckUtils.isPossibleSet(selectedCardsForSet);
     if (!validationResult.isValid) {
-      alert(validationResult.error);
+      toast.error(validationResult.error);
       return;
     }
 
@@ -576,6 +686,7 @@ export default function Game({ roomData }: GameProps) {
     //sort the newly placed set
     const playerMelds = updatedBoard[user.uid];
 
+    let newThrowPile = localRoomData.gameState.throwPile;
     // --- Check using newMeldId ---
     if (playerMelds && newMeldId && playerMelds[newMeldId]) {
       const newSet = playerMelds[newMeldId]; // Get the set using the string key
@@ -630,6 +741,26 @@ export default function Game({ roomData }: GameProps) {
       // Replace content of the set with the sorted version
       newSet.length = 0;
       newSet.push(...finalSortedSet);
+
+      //if set like 2,2,2,2 placed, check if there are 4 cards each with different suits and remove them from board but add them to the throw pile
+
+      //TODO - odhozene karty z hraci plochy se neukazuji na vrchu odhazovaciho balicku
+      if (finalSortedSet.length >= 4) {
+        const firstCardValue = finalSortedSet[0].value;
+        const allSameValue = finalSortedSet.every(
+          (c) => c.value === firstCardValue
+        );
+        const uniqueSuits = new Set(
+          finalSortedSet.filter((c) => c.type !== "joker").map((c) => c.type)
+        );
+        newThrowPile = [...finalSortedSet, ...newThrowPile];
+        if (allSameValue && uniqueSuits.size == 4) {
+          delete playerMelds[newMeldId];
+          toast.success(
+            "Set of four cards with same value and different suits removed from board!"
+          );
+        }
+      }
     }
 
     setLocalRoomData((prev) => ({
@@ -641,6 +772,7 @@ export default function Game({ roomData }: GameProps) {
           [user.uid]: updatedHand,
         },
         board: updatedBoard,
+        throwPile: newThrowPile,
       },
     }));
 
@@ -700,21 +832,25 @@ export default function Game({ roomData }: GameProps) {
     targetMeldId: string
   ) {
     if (!user) return;
-    if (!didPlayerDrawCard) return alert("You need to draw a card first.");
+    if (!didPlayerDrawCard) return toast.info("You need to draw a card first.");
     if (didPlayerPerformAction) {
-      return alert("Wait for your next turn to perform another action.");
+      return toast.error("Wait for your turn to perform another action.");
     }
     if (
       localRoomData.gameState.turnNumber <
       4 * localRoomData.currentPlayerIds.length
     ) {
-      return alert("You can add cards to board sets starting from turn 4.");
+      return toast.info(
+        "You can add cards to board sets starting from turn 4."
+      );
     }
     if (selectedCards.length === 0) {
-      return alert("You must select at least one card from your hand to add.");
+      return toast.info(
+        "You must select at least one card from your hand to add."
+      );
     }
     if (selectedCards.some((c) => c.playerId !== user.uid)) {
-      return alert("You can only add your own cards.");
+      return toast.error("You can only add your own cards.");
     }
 
     const cardIndexes = selectedCards.map((c) => c.cardIndex);
@@ -726,26 +862,27 @@ export default function Game({ roomData }: GameProps) {
       localRoomData.gameState.board[targetPlayerId]?.[targetMeldId];
     if (!targetSet) {
       console.error("Target set not found:", targetPlayerId, targetMeldId);
-      return alert("The set you are trying to add to does not exist.");
+      return toast.error("The set you are trying to add to does not exist.");
     }
 
     const newPotentialSet = [...targetSet, ...cardsToAdd];
     const validationResult = deckUtils.isPossibleSet(newPotentialSet);
 
     if (!validationResult.isValid) {
-      return alert(`Invalid addition: ${validationResult.error}`);
+      return toast.error(`Invalid addition: ${validationResult.error}`);
     }
 
     const updatedHand = localRoomData.gameState.hands[user.uid].filter(
       (_, index) => !cardIndexes.includes(index)
     );
 
+    // build finalSortedSet same way as placeSetOnBoard (groups / sequences, jokers handling)
     const realCards = newPotentialSet.filter((c) => c.type !== "joker");
     const jokers = newPotentialSet.filter((c) => c.type === "joker");
     let finalSortedSet: Card[] = [];
 
     if (realCards.length === 0) {
-      finalSortedSet = [...newPotentialSet]; // All jokers
+      finalSortedSet = [...newPotentialSet];
     } else {
       const firstValue = realCards[0].value;
       const isGroup = realCards.every((c) => c.value === firstValue);
@@ -788,7 +925,45 @@ export default function Game({ roomData }: GameProps) {
       }
     }
 
-    // c. Set the new state immutably
+    // Prepare updated board and throwPile
+    const updatedBoard = {
+      ...localRoomData.gameState.board,
+      [targetPlayerId]: {
+        ...localRoomData.gameState.board[targetPlayerId],
+      },
+    };
+
+    let newThrowPile = localRoomData.gameState.throwPile || [];
+
+    // Check for four-of-a-kind removal (4 cards same value, 4 different suits)
+    if (finalSortedSet.length >= 4) {
+      const firstCardValue = finalSortedSet[0].value;
+      const allSameValue = finalSortedSet.every(
+        (c) => c.value === firstCardValue
+      );
+      const uniqueSuits = new Set(
+        finalSortedSet.filter((c) => c.type !== "joker").map((c) => c.type)
+      );
+
+      // put the newly formed set on top of the throw pile
+      newThrowPile = [...finalSortedSet, ...newThrowPile];
+
+      if (allSameValue && uniqueSuits.size === 4) {
+        // remove the meld from board
+        delete updatedBoard[targetPlayerId][targetMeldId];
+        toast.success(
+          "Set of four cards with same value and different suits removed from board!"
+        );
+      } else {
+        // otherwise store the sorted set back into the meld
+        updatedBoard[targetPlayerId][targetMeldId] = finalSortedSet;
+      }
+    } else {
+      // not enough cards to trigger special rule — just update the meld
+      updatedBoard[targetPlayerId][targetMeldId] = finalSortedSet;
+    }
+
+    // Update local state immutably
     setLocalRoomData((prev) => ({
       ...prev,
       gameState: {
@@ -797,23 +972,14 @@ export default function Game({ roomData }: GameProps) {
           ...prev.gameState.hands,
           [user.uid]: updatedHand,
         },
-        board: {
-          ...prev.gameState.board,
-          [targetPlayerId]: {
-            ...prev.gameState.board[targetPlayerId],
-            [targetMeldId]: finalSortedSet, // Update the specific meld
-          },
-        },
+        board: updatedBoard,
+        throwPile: newThrowPile,
       },
     }));
 
-    // 5. Cleanup
+    // cleanup
     setSelectedCards([]);
-
-    // This action doesn't count as "performing an action" for the turn,
-    // so the player still needs to throw a card away.
-    // We also don't sync with the backend here, as that happens
-    // after the player throws a card (updateGameAfterAction).
+    // This action doesn't count as "performing an action" — player still needs to throw a card away.
   }
 
   //you can swap cards in hand whenever you want
@@ -926,9 +1092,9 @@ export default function Game({ roomData }: GameProps) {
       </div>
 
       <div className="board-sets__container">
-        {Object.entries(localRoomData.gameState.board).map(
-          ([playerId, sets]) => (
-            // 'sets' is now Record<string, Card[]>
+        {sortedPlayers.map((playerId) => {
+          const sets = localRoomData.gameState.board[playerId] || {};
+          return (
             <div key={playerId} className="player-board-sets__container">
               <h4>
                 {users[playerId]
@@ -960,40 +1126,44 @@ export default function Game({ roomData }: GameProps) {
                 ))}
               </div>
             </div>
-          )
-        )}
+          );
+        })}
       </div>
 
-      {Object.entries(localRoomData.gameState.hands).map(([playerId, hand]) => (
-        <div key={`${playerId}-hand`}>
-          <h3>
-            {users[playerId]
-              ? users[playerId].displayName || "Unknown"
-              : "Unknown"}
-            &nbsp;{user?.uid == playerId ? <strong>(You)</strong> : null}
-          </h3>
+      {sortedPlayers.map((playerId) => {
+        const hand = localRoomData.gameState.hands[playerId] || [];
+        return (
+          <div key={`${playerId}-hand`}>
+            <h3>
+              {users[playerId]
+                ? users[playerId].displayName || "Unknown"
+                : "Unknown"}
+              &nbsp;{user?.uid == playerId ? <strong>(You)</strong> : null}
+            </h3>
 
-          {hand.map((card, index) => (
-            <CardRenderer
-              cardPath={
-                user?.uid === playerId ? card.imagePath : card.backImagePath
-              }
-              isHoverable
-              onClick={
-                user?.uid == playerId
-                  ? () => selectCard(index, playerId)
-                  : undefined
-              }
-              key={`${card.name}-${index}-${playerId}`}
-              isSelected={
-                !!selectedCards.find(
-                  (c) => c.cardIndex === index && c.playerId === playerId
-                )
-              }
-            />
-          ))}
-        </div>
-      ))}
+            {hand.map((card, index) => (
+              <CardRenderer
+                cardPath={
+                  user?.uid === playerId ? card.imagePath : card.backImagePath
+                }
+                isHoverable
+                onClick={
+                  user?.uid == playerId
+                    ? () => selectCard(index, playerId)
+                    : undefined
+                }
+                key={`${card.name}-${index}-${playerId}`}
+                isSelected={
+                  !!selectedCards.find(
+                    (c) => c.cardIndex === index && c.playerId === playerId
+                  )
+                }
+              />
+            ))}
+          </div>
+        );
+      })}
+
       <div className="player-actions">
         <h3 className="perform-action">Perform action:</h3>
         <div className="player-actions__buttons">
@@ -1030,7 +1200,7 @@ export default function Game({ roomData }: GameProps) {
               {selectedCards.length == 0 &&
                 didPlayerDrawCard &&
                 !didPlayerPerformAction && (
-                  <p>Select a card to perform an action.</p>
+                  <span>Select a card to perform an action.</span>
                 )}
 
               {selectedCards.length == 1 &&

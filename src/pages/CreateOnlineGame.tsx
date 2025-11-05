@@ -14,6 +14,7 @@ import {
 import { database } from "../auth/config";
 import { useNavigate, Link } from "react-router-dom"; // Import Link
 import type { RoomData, RoomInput } from "../types/room";
+import { toast } from "sonner";
 
 export function CreateOnlineGame() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export function CreateOnlineGame() {
 
   async function createGame(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!user) return alert("You must be signed in to create a game.");
+    if (!user) return toast.error("You must be signed in to create a game.");
     const newRoom: RoomData = {
       id: Math.random().toString(36).substring(2, 10), //p1vga674
       name: inputs.name ?? "Unnamed secret room",
@@ -78,7 +79,9 @@ export function CreateOnlineGame() {
       const roomDoc = doc(database, "rooms", newRoom.id);
       const docSnapshot = await getDoc(roomDoc);
       if (docSnapshot.exists()) {
-        return alert("A room with this ID already exists. Please try again.");
+        return toast.error(
+          "A room with this ID already exists. Please try again."
+        );
       } else {
         await setDoc(roomDoc, newRoom);
       }
@@ -86,7 +89,7 @@ export function CreateOnlineGame() {
       await navigate(`/online/${newRoom.id}`);
     } catch (error) {
       console.error("Error creating game room: ", error);
-      alert("Error creating game room. Please try again.");
+      toast.error("Error creating game room. Please try again.");
     }
   }
 
