@@ -3,23 +3,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 3rem 1rem;
   min-height: 100vh;
   width: 100%;
   text-align: center;
-}
-
-/* --- Game Title (Matches HomePage.css) --- */
-.create-game-title {
-  font-size: 5.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  margin-bottom: 2.5rem;
-  margin-top: 2rem;
-  line-height: 1.1;
-  -webkit-text-stroke: 3px #000;
-  text-shadow: 6px 6px 0px #d90000;
 }
 
 /* --- Main "Create Game" Form --- */
@@ -34,6 +20,7 @@
   border: 4px solid #000;
   border-radius: 8px;
   box-shadow: 0 6px 0 0 #000;
+  z-index: 1;
 }
 
 .form-group {
@@ -52,7 +39,7 @@
 }
 
 .form-input {
-  font-family: 'Oswald', 'Arial Black', sans-serif;
+  font-family: "BoldPixels";
   font-size: 1.2rem;
   padding: 0.8rem 1rem;
   background: #2a2a3a;
@@ -60,18 +47,16 @@
   border-radius: 4px;
   color: #ffffff;
   outline: none;
-  text-transform: none; /* Allow lowercase input */
+  text-transform: none;
   text-align: left;
   width: 100%;
-  box-sizing: border-box; /* Important for 100% width */
+  box-sizing: border-box;
 }
 
-/* --- Main Button Style (Copied from HomePage.css) --- */
 .pixel-button {
   display: inline-block;
   width: 100%;
   padding: 1.25rem 1rem;
-  font-family: 'Oswald', 'Arial Black', sans-serif;
   font-size: 1.4rem;
   text-align: center;
   text-decoration: none;
@@ -88,25 +73,26 @@
   box-sizing: border-box;
 }
 
+.margin-bottom{
+  margin-bottom: 32px;
+}
+
 .pixel-button:active {
   box-shadow: 0 2px 0 0 #000000;
   transform: translateY(4px);
 }
 
-/* Red "Submit" button */
 .form-submit-button {
-  background-color: #d90000; /* Red "go" button */
+  background-color: #d90000;
   font-size: 1.4rem;
 }
 
-/* "Back to Menu" button */
 .secondary-button {
-  max-width: 500px; /* Match form width */
+  max-width: 500px;
   margin-top: 1.25rem;
   background-color: #4a4a5a; /* A neutral grey-purple */
 }
 
-/* --- Signed Out Container --- */
 .signed-out-container {
   display: flex;
   flex-direction: column;
@@ -122,28 +108,17 @@
   font-weight: 700;
 }
 
-/* Red "Sign In" button */
 .signed-out-container .pixel-button {
   background-color: #d90000;
 }
 
-/* Responsive design */
-@media (max-width: 600px) {
-  .create-game-title {
-    font-size: 3rem;
-    -webkit-text-stroke: 2px #000;
-    text-shadow: 4px 4px 0px #d90000;
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
+@media (max-width: 792px) {
+  .create-game-form{
+    width: calc(100% - 6rem);
   }
 
-  .create-game-form {
-    padding: 1.5rem;
-  }
-
-  .pixel-button,
-  .form-submit-button,
   .secondary-button {
-    font-size: 1.2rem;
+    width: calc(100% - 1.5rem);
   }
 }
+

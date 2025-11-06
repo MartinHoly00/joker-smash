@@ -4,7 +4,8 @@ import "./RoomList.css";
 import { database } from "../auth/config";
 import { useEffect, useState } from "react";
 import type { RoomData } from "../types/room";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { MenuBackground } from "../components/MenuBackground";
 
 export function RoomList() {
   const [rooms, setRooms] = useState<RoomData[]>([]);
@@ -30,23 +31,28 @@ export function RoomList() {
   }
 
   return (
-    <div className="room-list">
-      <h1>Join rooms:</h1>
-      {rooms.map((room) => (
-        <div
-          key={room.id}
-          onClick={() => navigate(`/online/${room.id}`)}
-          className="room-item"
-        >
-          <span>{room.name}</span>
+    <MenuBackground>
+      <div className="room-list">
+        <h1>Join rooms:</h1>
+        {rooms.map((room) => (
+          <div
+            key={room.id}
+            onClick={() => navigate(`/online/${room.id}`)}
+            className="room-item"
+          >
+            <span>{room.name}</span>
 
-          <span>{room.password ? "Password" : undefined}</span>
-          <p>
-            <span>Room id:&nbsp;</span>
-            <span>{room.id}</span>
-          </p>
-        </div>
-      ))}
-    </div>
+            <span>{room.password ? "Password" : undefined}</span>
+            <p>
+              <span>Room id:&nbsp;</span>
+              <span>{room.id}</span>
+            </p>
+          </div>
+        ))}{" "}
+        <Link to="/" className="pixel-button secondary-button margin-bottom">
+          Back to Menu
+        </Link>
+      </div>
+    </MenuBackground>
   );
 }

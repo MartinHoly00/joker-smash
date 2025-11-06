@@ -1,0 +1,51 @@
+.menu-background {
+  position: relative; /* allow absolute decorative cards */
+   /* pixelated gradient background */
+   --pixel-size: 12px; /* adjust for coarser/finer pixels */
+   --dark: #2a2a3a;
+   --mid: #4a2a4a;
+   --accent: #d90000;
+    background-color: #2e7d32;
+   color: #fff;
+   text-align: center;
+ }
+ 
+/* decorative card images behind the UI */
+.card-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-card {
+  position: absolute;
+  width: 160px;
+  image-rendering: pixelated;
+  filter: drop-shadow(8px 10px 6px rgba(0,0,0,0.6)) saturate(1.1);
+  opacity: 0.92;
+  transform-origin: center;
+  transition: transform 0.4s ease;
+}
+
+.bg-card:hover { transform: scale(1.03) rotate(0deg); }
+
+/* individual positions — tweak to taste */
+.bg-1 { top: 6%; left: 3%; transform: rotate(-18deg) scale(1.2); }
+.bg-2 { top: 10%; right: 6%; transform: rotate(12deg) scale(0.95); }
+.bg-3 { top: 35%; left: -30px; transform: rotate(-8deg) scale(1.05); }
+.bg-4 { bottom: 20%; right: -30px; transform: rotate(18deg) scale(1.15); }
+.bg-5 { top: 55%; left: 10%; transform: rotate(6deg) scale(0.9); }
+.bg-6 { bottom: 6%; left: 20%; transform: rotate(-22deg) scale(1.25); }
+.bg-7 { bottom: 12%; right: 22%; transform: rotate(8deg) scale(1.0); }
+.bg-8 { top: 40%; right: 25%; transform: rotate(10deg) scale(0.85); }
+
+/* keep main content above decorations */
+.home-container > *:not(.card-background) { position: relative; z-index: 1; }
+
+/* responsive: hide some cards on small screens */
+@media (max-width: 800px) {
+  .bg-card { width: 110px; opacity: 0.85; }
+  .bg-1, .bg-4, .bg-6 { display: none; }
+}

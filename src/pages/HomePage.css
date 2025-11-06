@@ -6,11 +6,11 @@
   justify-content: center;
   min-height: 100vh;
   width: 100%;
-  text-align: center;
+  position: relative;
 }
 
 .user-info {
-  position: absolute;
+  position: absolute !important;
   top: 20px;
   right: 20px;
   display: flex;
@@ -53,21 +53,6 @@
   background-color: #ff2a2a;
 }
 
-/* --- Game Title (Styled like the icon) --- */
-.home-title {
-  font-size: 5.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  text-transform: uppercase;
-  margin-bottom: 2.5rem;
-  margin-top: 2rem;
-  line-height: 1.1;
-
-  -webkit-text-stroke: 3px #000;
-  /* 2. Red drop-shadow */
-  text-shadow: 6px 6px 0px #d90000;
-}
-
 .buttons-container {
   display: flex;
   flex-direction: column;
@@ -78,12 +63,12 @@
 }
 
 .pixel-button {
+  font-family: "BoldPixels" !important;
   display: inline-block;
   width: 100%;
   padding: 1.25rem 1rem;
   font-size: 1.4rem;
   text-align: center;
-  text-decoration: none;
   color: #ffffff;
   text-transform: uppercase;
   font-weight: 700;
@@ -121,7 +106,7 @@
 }
 
 .join-online-form input[type='text'] {
-  font-family: 'Oswald', 'Arial Black', sans-serif;
+  font-family: "BoldPixels";
   font-size: 1.2rem;
   padding: 1rem;
   background: #2a2a3a;

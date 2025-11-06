@@ -15,6 +15,8 @@ import { database } from "../auth/config";
 import { useNavigate, Link } from "react-router-dom"; // Import Link
 import type { RoomData, RoomInput } from "../types/room";
 import { toast } from "sonner";
+import { MenuBackground } from "../components/MenuBackground";
+import { Title } from "../components/game/Title";
 
 export function CreateOnlineGame() {
   const navigate = useNavigate();
@@ -94,123 +96,133 @@ export function CreateOnlineGame() {
   }
 
   return (
-    <div className="create-game-container">
-      {user ? (
-        <>
-          <h1 className="create-game-title">Create Game</h1>
-          <form onSubmit={createGame} className="create-game-form">
-            <label className="form-group">
-              <span>Game Name:</span>
-              <input
-                type="text"
-                name="gameName"
-                required
-                className="form-input"
-                value={inputs.name}
-                onChange={(e) => setInputs({ ...inputs, name: e.target.value })}
-              />
-            </label>
-            <label className="form-group">
-              <span>Player Limit:</span>
-              <input
-                type="number"
-                name="playerLimit"
-                min={2}
-                max={8}
-                required
-                className="form-input"
-                value={inputs.playerLimit}
-                onChange={(e) =>
-                  setInputs({ ...inputs, playerLimit: Number(e.target.value) })
-                }
-              />
-            </label>
-            <label className="form-group">
-              <span>Timer for Turns (seconds):</span>
-              <input
-                type="number"
-                name="timerForTurns"
-                min={10}
-                max={300}
-                required
-                className="form-input"
-                value={inputs.timerForTurns}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    timerForTurns: Number(e.target.value),
-                  })
-                }
-              />
-            </label>
-            <label className="form-group">
-              <span>Password (optional):</span>
-              <input
-                type="password"
-                name="password"
-                className="form-input"
-                value={inputs.password}
-                onChange={(e) =>
-                  setInputs({ ...inputs, password: e.target.value })
-                }
-              />
-            </label>
-            <label className="form-group">
-              <span>Number of Decks:</span>
-              <input
-                type="number"
-                name="numberOfDecks"
-                min={1}
-                max={5}
-                required
-                className="form-input"
-                value={inputs.numberOfDecks}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    numberOfDecks: Number(e.target.value),
-                  })
-                }
-              />
-            </label>
-            <label className="form-group">
-              <span>Cards in Hand:</span>
-              <input
-                type="number"
-                name="cardsInHand"
-                min={1}
-                max={20}
-                required
-                className="form-input"
-                value={inputs.cardsInHand}
-                onChange={(e) =>
-                  setInputs({
-                    ...inputs,
-                    cardsInHand: Number(e.target.value),
-                  })
-                }
-              />
-            </label>
-            <button type="submit" className="pixel-button form-submit-button">
-              Create game
+    <MenuBackground>
+      <div className="create-game-container">
+        {user ? (
+          <>
+            <Title text="CREATE GAME" />
+            <form onSubmit={createGame} className="create-game-form">
+              <label className="form-group">
+                <span>Game Name:</span>
+                <input
+                  type="text"
+                  name="gameName"
+                  required
+                  className="form-input"
+                  value={inputs.name}
+                  onChange={(e) =>
+                    setInputs({ ...inputs, name: e.target.value })
+                  }
+                />
+              </label>
+              <label className="form-group">
+                <span>Player Limit:</span>
+                <input
+                  type="number"
+                  name="playerLimit"
+                  min={2}
+                  max={8}
+                  required
+                  className="form-input"
+                  value={inputs.playerLimit}
+                  onChange={(e) =>
+                    setInputs({
+                      ...inputs,
+                      playerLimit: Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              <label className="form-group">
+                <span>Timer for Turns (seconds):</span>
+                <input
+                  type="number"
+                  name="timerForTurns"
+                  min={10}
+                  max={300}
+                  required
+                  className="form-input"
+                  value={inputs.timerForTurns}
+                  onChange={(e) =>
+                    setInputs({
+                      ...inputs,
+                      timerForTurns: Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              <label className="form-group">
+                <span>Password (optional):</span>
+                <input
+                  type="password"
+                  name="password"
+                  className="form-input"
+                  value={inputs.password}
+                  onChange={(e) =>
+                    setInputs({ ...inputs, password: e.target.value })
+                  }
+                />
+              </label>
+              <label className="form-group">
+                <span>Number of Decks:</span>
+                <input
+                  type="number"
+                  name="numberOfDecks"
+                  min={1}
+                  max={5}
+                  required
+                  className="form-input"
+                  value={inputs.numberOfDecks}
+                  onChange={(e) =>
+                    setInputs({
+                      ...inputs,
+                      numberOfDecks: Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              <label className="form-group">
+                <span>Cards in Hand:</span>
+                <input
+                  type="number"
+                  name="cardsInHand"
+                  min={1}
+                  max={20}
+                  required
+                  className="form-input"
+                  value={inputs.cardsInHand}
+                  onChange={(e) =>
+                    setInputs({
+                      ...inputs,
+                      cardsInHand: Number(e.target.value),
+                    })
+                  }
+                />
+              </label>
+              <button type="submit" className="pixel-button form-submit-button">
+                Create game
+              </button>
+            </form>
+            <Link
+              to="/"
+              className="pixel-button secondary-button margin-bottom"
+            >
+              Back to Menu
+            </Link>
+          </>
+        ) : (
+          <div className="signed-out-container">
+            <Title text="CREATE GAME" />
+            <p>Please sign in to create an online game.</p>
+            <button onClick={signInWithGoogle} className="pixel-button">
+              Sign in with Google
             </button>
-          </form>
-          <Link to="/" className="pixel-button secondary-button">
-            Back to Menu
-          </Link>
-        </>
-      ) : (
-        <div className="signed-out-container">
-          <h1 className="create-game-title">Create Game</h1>
-          <p>Please sign in to create an online game.</p>
-          <button onClick={signInWithGoogle} className="pixel-button">
-            Sign in with Google
-          </button>
-          <Link to="/" className="pixel-button secondary-button">
-            Back to Menu
-          </Link>
-        </div>
-      )}
-    </div>
+            <Link to="/" className="pixel-button secondary-button">
+              Back to Menu
+            </Link>
+          </div>
+        )}
+      </div>
+    </MenuBackground>
   );
 }

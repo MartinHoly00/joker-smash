@@ -1,0 +1,13 @@
+.menu-title{
+  font-family: "BoldPixels";
+  font-size: 5.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+  margin-top: 2rem;
+  line-height: 1.1;
+
+  -webkit-text-stroke: 3px #000;
+  text-shadow: 6px 6px 0px #d90000;
+}
