@@ -620,11 +620,18 @@ export default function Game({ roomData }: GameProps) {
       4 * localRoomData.currentPlayerIds.length
     )
       return toast.info("You can place sets on board starting from turn 4.");
-    //check that first set placed by each player must be "clean": 1,2,3 - no jokers, no sets like 5,5,5
+    if (
+      selectedCards.length === localRoomData.gameState.hands[user.uid].length
+    ) {
+      return toast.info(
+        "You must keep at least one card in your hand to throw away and win."
+      );
+    }
     if (
       localRoomData.gameState.board[user.uid] === undefined ||
       Object.keys(localRoomData.gameState.board[user.uid] || {}).length === 0
     ) {
+      //check that first set placed by each player must be "clean": 1,2,3 - no jokers, no sets like 5,5,5
       const cardIndexesForSet: number[] = selectedCards
         .filter((c) => c.playerId === userId)
         .map((c) => c.cardIndex);
