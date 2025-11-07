@@ -19,8 +19,9 @@ import { ThrowPile } from "./ThrowPile";
 import type { Card } from "../../data/Card";
 import { WinModal } from "./WinModal";
 import { useNavigate } from "react-router-dom";
-import { ImInfo } from "react-icons/im";
 import { toast } from "sonner";
+import { InfoModal } from "./InfoModal";
+import { InGameChat } from "./InGameChat";
 
 const getCardRank = (card: Card, aceHigh: boolean = true): number => {
   if (card.type === "joker") {
@@ -52,7 +53,6 @@ export default function Game({ roomData }: GameProps) {
     showHelperButtonsPlaceCardToBoard,
     setShowHelperButtonsPlaceCardToBoard,
   ] = useState<boolean>(false);
-  const [showGameInfo, setShowGameInfo] = useState<boolean>(false);
 
   const { user } = useAuth();
   const [users, setUsers] = useState<Record<string, User>>({});
@@ -1309,46 +1309,8 @@ export default function Game({ roomData }: GameProps) {
           winnerName={localRoomData.gameState.winnerName ?? "Unknown"}
         />
       )}
-      <button
-        className="show-game-info"
-        onClick={() => setShowGameInfo(!showGameInfo)}
-        aria-label="Show game info"
-      >
-        <ImInfo />
-      </button>
-      {showGameInfo && (
-        <div className="info-modal__container">
-          <p>
-            <span>Room id:</span>&nbsp;<span>{localRoomData.id}</span>
-          </p>
-          <p>
-            <span>Name</span>&nbsp;<span>{localRoomData.name}</span>
-          </p>
-          <p>
-            <span>Number of decks:</span>&nbsp;
-            <span>{localRoomData.numberOfDecks}</span>
-          </p>
-          <p>
-            <span>Current turn:</span>&nbsp;
-            <span>
-              {Math.floor(
-                localRoomData.gameState.turnNumber /
-                  localRoomData.currentPlayerIds.length
-              )}
-            </span>
-          </p>
-          {localRoomData.password && (
-            <p>
-              <span>Password:</span>&nbsp;<span>{localRoomData.password}</span>
-            </p>
-          )}
-          <p>
-            <span>Time for turn:</span>&nbsp;
-            <span>{localRoomData.timerForTurns}</span>
-          </p>
-          <button onClick={handleCloseGame}>Leave game</button>
-        </div>
-      )}
+      <InGameChat roomData={localRoomData} />
+      <InfoModal roomData={localRoomData} handleCloseGame={handleCloseGame} />
     </div>
   );
 }

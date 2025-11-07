@@ -55,6 +55,7 @@ export function CreateOnlineGame() {
         board: {},
         winnerName: "",
       },
+      chat: [],
     };
 
     console.log("Creating room: ", newRoom);

@@ -12,6 +12,7 @@ export type RoomData = {
   emptyAt?: any;
   numberOfDecks: number;
   cardsInHand: number;
+  chat: Message[];
 };
 
 export type RoomGameState = {
@@ -33,4 +34,14 @@ export type RoomInput = {
   timerForTurns: number;
   numberOfDecks: number;
   cardsInHand: number;
+};
+
+export type Message = {
+  id: string;
+  sender: {
+    displayName: string;
+    photoURL: string;
+  };
+  content: string;
+  timestamp: Date;
 };
