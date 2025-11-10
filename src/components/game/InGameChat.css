@@ -111,4 +111,9 @@
   padding: .25rem .5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-family: "BoldPixels";
+}
+
+.chat__input-form input::placeholder{
+  font-family: "BoldPixels";
 }

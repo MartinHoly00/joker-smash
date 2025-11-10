@@ -832,6 +832,8 @@ export default function Game({ roomData }: GameProps) {
         err
       );
     }
+
+    realtimeUpdate(roomData.id);
   }
 
   async function addCardToBoardSet(
@@ -1059,11 +1061,23 @@ export default function Game({ roomData }: GameProps) {
     }
   }
 
-  //limit pro vyjetí
-
   useEffect(() => {
     fetchUsers();
   }, [roomData]);
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showGameInfo, setShowGameInfo] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isChatOpen) {
+      setShowGameInfo(false);
+    }
+  }, [isChatOpen]);
+  useEffect(() => {
+    if (showGameInfo) {
+      setIsChatOpen(false);
+    }
+  }, [showGameInfo]);
 
   return (
     <div className="game-board">
@@ -1309,8 +1323,18 @@ export default function Game({ roomData }: GameProps) {
           winnerName={localRoomData.gameState.winnerName ?? "Unknown"}
         />
       )}
-      <InGameChat roomData={localRoomData} />
-      <InfoModal roomData={localRoomData} handleCloseGame={handleCloseGame} />
+      <InGameChat
+        roomData={localRoomData}
+        setRoomData={setLocalRoomData}
+        isChatOpen={isChatOpen}
+        setIsChatOpen={setIsChatOpen}
+      />
+      <InfoModal
+        roomData={localRoomData}
+        handleCloseGame={handleCloseGame}
+        showGameInfo={showGameInfo}
+        setShowGameInfo={setShowGameInfo}
+      />
     </div>
   );
 }

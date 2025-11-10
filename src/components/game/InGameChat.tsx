@@ -9,12 +9,19 @@ import { doc, updateDoc } from "firebase/firestore";
 
 type InGameChatProps = {
   roomData: RoomData;
+  setRoomData: (data: RoomData) => void;
+  isChatOpen: boolean;
+  setIsChatOpen: (isOpen: boolean) => void;
 };
 
-export function InGameChat({ roomData }: InGameChatProps) {
+export function InGameChat({
+  roomData,
+  isChatOpen,
+  setIsChatOpen,
+  setRoomData,
+}: InGameChatProps) {
   const { user } = useAuth();
 
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isNewMessage, setIsNewMessage] = useState(false); //TODO - implement new message detection
 
   useEffect(() => {
@@ -48,6 +55,12 @@ export function InGameChat({ roomData }: InGameChatProps) {
       await updateDoc(roomRef, {
         chat: [...roomData.chat, newMessage],
       });
+      //update local state
+      setRoomData({
+        ...roomData,
+        chat: [...roomData.chat, newMessage],
+      });
+
       setMessageInput("");
       setIsNewMessage(false);
     } catch (error) {

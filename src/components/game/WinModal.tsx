@@ -40,9 +40,16 @@ export const WinModal: React.FC<WinModalProps> = ({
           &times;
         </button>
 
-        <h1>Congratulations!</h1>
+        <h1>
+          {winnerName === user?.displayName
+            ? "Congratulations!"
+            : "Womp womp.."}
+        </h1>
 
-        <p className="modal-winner-name">{winnerName} Wins!</p>
+        <span className="modal-winner-name">
+          <b>{winnerName}</b>&nbsp;
+          <span className="modal-winner-text">Wins!</span>
+        </span>
 
         <p>
           {winnerName === user?.displayName

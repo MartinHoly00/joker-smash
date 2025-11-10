@@ -114,3 +114,9 @@
   background: #218838;
   transform: translateY(-2px);
 }
+
+.modal-winner-text{
+  color: white;
+  font-weight: normal;
+  font-size: large;
+}

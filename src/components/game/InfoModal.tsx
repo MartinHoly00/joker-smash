@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { RoomData } from "../../types/room";
 import "./InfoModal.css";
 import { ImInfo } from "react-icons/im";
@@ -6,10 +5,16 @@ import { ImInfo } from "react-icons/im";
 type InfoModalProps = {
   roomData: RoomData;
   handleCloseGame: () => void;
+  showGameInfo: boolean;
+  setShowGameInfo: (show: boolean) => void;
 };
 
-export function InfoModal({ roomData, handleCloseGame }: InfoModalProps) {
-  const [showGameInfo, setShowGameInfo] = useState<boolean>(false);
+export function InfoModal({
+  roomData,
+  handleCloseGame,
+  showGameInfo,
+  setShowGameInfo,
+}: InfoModalProps) {
   return (
     <>
       <button
