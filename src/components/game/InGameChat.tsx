@@ -25,8 +25,10 @@ export function InGameChat({
   const [isNewMessage, setIsNewMessage] = useState(false); //TODO - implement new message detection
 
   useEffect(() => {
-    if (!isChatOpen) {
-      setIsNewMessage(true);
+    if (!isChatOpen && roomData.chat.length > 0 && user) {
+      if (roomData.chat[0].sender.displayName !== user.displayName) {
+        setIsNewMessage(true);
+      }
     }
   }, [roomData.chat]);
 
