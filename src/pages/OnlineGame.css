@@ -1,3 +1,10 @@
+.game-lobby__page{
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .game-lobby__container {
   display: flex;
   flex-direction: column;
@@ -6,7 +13,7 @@
   
   width: 100%;
   max-width: 500px;
-  margin: 20px auto;
+  margin: 0 auto;
   padding: 24px;
   border-radius: 12px;
   
@@ -18,6 +25,25 @@
   position: relative;
   overflow: hidden;
   z-index: 10;
+}
+
+.game-lobby__container label {
+  width: 100%;
+  text-align: left;
+  color: #ccc;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.game-lobby__container input[type="password"] {
+  width: calc(100% - 20px);;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #2e2e32;
+  color: #e0e0e0;
+  font-size: 1rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .game-lobby__container::before {

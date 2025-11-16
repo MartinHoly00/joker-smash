@@ -23,24 +23,6 @@ import { toast } from "sonner";
 import { InfoModal } from "./InfoModal";
 import { InGameChat } from "./InGameChat";
 
-const getCardRank = (card: Card, aceHigh: boolean = true): number => {
-  if (card.type === "joker") {
-    return 0;
-  }
-  switch (card.value) {
-    case "A":
-      return aceHigh ? 14 : 1;
-    case "K":
-      return 13;
-    case "Q":
-      return 12;
-    case "J":
-      return 11;
-    default:
-      return Number(card.value);
-  }
-};
-
 type GameProps = {
   roomData: RoomData;
 };
@@ -713,7 +695,9 @@ export default function Game({ roomData }: GameProps) {
 
         if (isGroup) {
           finalSortedSet = [...newSet].sort((a, b) => {
-            return getCardRank(a, true) - getCardRank(b, true);
+            return (
+              deckUtils.getCardRank(a, true) - deckUtils.getCardRank(b, true)
+            );
           });
         } else if (isSequence) {
           const hasTwo = realCards.some((c) => c.value === 2);
@@ -721,12 +705,12 @@ export default function Game({ roomData }: GameProps) {
           const isAceHigh = !(hasTwo && hasAce);
 
           const sortedRanks = realCards
-            .map((c) => getCardRank(c, isAceHigh))
+            .map((c) => deckUtils.getCardRank(c, isAceHigh))
             .sort((a, b) => a - b);
 
           const cardsByRank = new Map<number, Card>();
           realCards.forEach((c) =>
-            cardsByRank.set(getCardRank(c, isAceHigh), c)
+            cardsByRank.set(deckUtils.getCardRank(c, isAceHigh), c)
           );
 
           const availableJokers = [...jokers];
@@ -901,7 +885,9 @@ export default function Game({ roomData }: GameProps) {
 
       if (isGroup) {
         finalSortedSet = [...newPotentialSet].sort((a, b) => {
-          return getCardRank(a, true) - getCardRank(b, true);
+          return (
+            deckUtils.getCardRank(a, true) - deckUtils.getCardRank(b, true)
+          );
         });
       } else if (isSequence) {
         const hasTwo = realCards.some((c) => c.value === 2);
@@ -909,11 +895,13 @@ export default function Game({ roomData }: GameProps) {
         const isAceHigh = !(hasTwo && hasAce); // Ace is low if 2 is also present
 
         const sortedRanks = realCards
-          .map((c) => getCardRank(c, isAceHigh))
+          .map((c) => deckUtils.getCardRank(c, isAceHigh))
           .sort((a, b) => a - b);
 
         const cardsByRank = new Map<number, Card>();
-        realCards.forEach((c) => cardsByRank.set(getCardRank(c, isAceHigh), c));
+        realCards.forEach((c) =>
+          cardsByRank.set(deckUtils.getCardRank(c, isAceHigh), c)
+        );
 
         const availableJokers = [...jokers];
         const minRank = sortedRanks[0];

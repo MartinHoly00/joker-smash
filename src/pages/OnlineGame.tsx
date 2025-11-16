@@ -19,6 +19,7 @@ import type { Card } from "../data/Card";
 import Game from "../components/game/Game";
 import "./OnlineGame.css";
 import { toast } from "sonner";
+import { MenuBackground } from "../components/MenuBackground";
 
 export function OnlineGame() {
   const navigate = useNavigate();
@@ -247,83 +248,95 @@ export function OnlineGame() {
   }
 
   return (
-    <>
+    <MenuBackground>
       {showPasswordPrompt ? (
-        <div>
-          <label>
-            Enter password to enter:
-            <input
-              type="password"
-              value={passwordInput}
-              onChange={(e) => setPasswordInput(e.target.value)}
-            />
-          </label>
-          <button onClick={checkPasswordInput}>Submit</button>
-          <p>
-            tries {tryCount}/{maxTries}
-          </p>
+        <div className="game-lobby__page">
+          <div className="game-lobby__container">
+            <h1 className="game-lobby__title">
+              Online Game Room: {roomData?.name}
+            </h1>
+            <label>
+              Enter password to enter:
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+              />
+              <span>
+                tries {tryCount}/{maxTries}
+              </span>
+            </label>
+            <button
+              onClick={checkPasswordInput}
+              className="game-lobby__button game-lobby__button--start"
+            >
+              Submit
+            </button>
+          </div>
         </div>
       ) : (
         <>
           {roomData && roomData.gameState.isRunning ? (
             <Game roomData={roomData} />
           ) : (
-            <div className="game-lobby__container">
-              <h1 className="game-lobby__title">
-                Online Game Room: {roomData?.name}
-              </h1>
-              <h2 className="game-lobby__room-id">id: {roomData?.id}</h2>
+            <div className="game-lobby__page">
+              <div className="game-lobby__container">
+                <h1 className="game-lobby__title">
+                  Online Game Room: {roomData?.name}
+                </h1>
+                <h2 className="game-lobby__room-id">id: {roomData?.id}</h2>
 
-              <div className="game-lobby__loader">
-                <MagnifyingGlass
-                  visible={true}
-                  height="80"
-                  width="80"
-                  ariaLabel="magnifying-glass-loading"
-                  wrapperStyle={{}}
-                  wrapperClass="magnifying-glass-wrapper"
-                  glassColor="#c0efff"
-                  color="#e15b64"
-                />
-              </div>
+                <div className="game-lobby__loader">
+                  <MagnifyingGlass
+                    visible={true}
+                    height="80"
+                    width="80"
+                    ariaLabel="magnifying-glass-loading"
+                    wrapperStyle={{}}
+                    wrapperClass="magnifying-glass-wrapper"
+                    glassColor="#c0efff"
+                    color="#e15b64"
+                  />
+                </div>
 
-              <p className="game-lobby__status">
-                {roomData?.playerLimit == roomData?.currentPlayerIds.length
-                  ? "Waiting for host to start the game"
-                  : "Waiting for players to join"}{" "}
-                <span className="game-lobby__player-count">
-                  {roomData?.currentPlayerIds.length}/{roomData?.playerLimit}
-                </span>
-              </p>
+                <p className="game-lobby__status">
+                  {roomData?.playerLimit == roomData?.currentPlayerIds.length
+                    ? "Waiting for host to start the game"
+                    : "Waiting for players to join"}{" "}
+                  <span className="game-lobby__player-count">
+                    {roomData?.currentPlayerIds.length}/{roomData?.playerLimit}
+                  </span>
+                </p>
 
-              <div className="game-lobby__actions">
-                {roomData?.hostPlayerId === user?.uid && (
+                <div className="game-lobby__actions">
+                  {roomData?.hostPlayerId === user?.uid && (
+                    <button
+                      onClick={startGame}
+                      className="game-lobby__button game-lobby__button--start"
+                    >
+                      Start Game
+                    </button>
+                  )}
                   <button
-                    onClick={startGame}
-                    className="game-lobby__button game-lobby__button--start"
+                    onClick={leaveRoom}
+                    className="game-lobby__button game-lobby__button--leave"
                   >
-                    Start Game
+                    Leave Room
                   </button>
-                )}
-                <button
-                  onClick={leaveRoom}
-                  className="game-lobby__button game-lobby__button--leave"
-                >
-                  Leave Room
-                </button>
-                {roomData?.hostPlayerId === user?.uid && (
-                  <button
-                    onClick={closeRoom}
-                    className="game-lobby__button game-lobby__button--close"
-                  >
-                    Close Room
-                  </button>
-                )}
+                  {roomData?.hostPlayerId === user?.uid && (
+                    <button
+                      onClick={closeRoom}
+                      className="game-lobby__button game-lobby__button--close"
+                    >
+                      Close Room
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
         </>
       )}
-    </>
+    </MenuBackground>
   );
 }
