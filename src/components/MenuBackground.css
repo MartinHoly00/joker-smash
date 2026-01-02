@@ -26,20 +26,58 @@
   filter: drop-shadow(8px 10px 6px rgba(0,0,0,0.6)) saturate(1.1);
   opacity: 0.92;
   transform-origin: center;
-  transition: transform 0.4s ease;
 }
 
-.bg-card:hover { transform: scale(1.03) rotate(0deg); }
+/* floating animations for each card */
+@keyframes float1 {
+  0%, 100% { transform: rotate(-18deg) scale(1.2) translate(0, 0); }
+  50% { transform: rotate(-22deg) scale(1.2) translate(-15px, 20px); }
+}
 
-/* individual positions — tweak to taste */
-.bg-1 { top: 6%; left: 3%; transform: rotate(-18deg) scale(1.2); }
-.bg-2 { top: 10%; right: 6%; transform: rotate(12deg) scale(0.95); }
-.bg-3 { top: 35%; left: -30px; transform: rotate(-8deg) scale(1.05); }
-.bg-4 { bottom: 20%; right: -30px; transform: rotate(18deg) scale(1.15); }
-.bg-5 { top: 55%; left: 10%; transform: rotate(6deg) scale(0.9); }
-.bg-6 { bottom: 6%; left: 20%; transform: rotate(-22deg) scale(1.25); }
-.bg-7 { bottom: 12%; right: 22%; transform: rotate(8deg) scale(1.0); }
-.bg-8 { top: 40%; right: 25%; transform: rotate(10deg) scale(0.85); }
+@keyframes float2 {
+  0%, 100% { transform: rotate(12deg) scale(0.95) translate(0, 0); }
+  50% { transform: rotate(16deg) scale(0.95) translate(20px, -15px); }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: rotate(-8deg) scale(1.05) translate(0, 0); }
+  50% { transform: rotate(-12deg) scale(1.05) translate(-10px, -20px); }
+}
+
+@keyframes float4 {
+  0%, 100% { transform: rotate(18deg) scale(1.15) translate(0, 0); }
+  50% { transform: rotate(14deg) scale(1.15) translate(15px, 15px); }
+}
+
+@keyframes float5 {
+  0%, 100% { transform: rotate(6deg) scale(0.9) translate(0, 0); }
+  50% { transform: rotate(10deg) scale(0.9) translate(-20px, 10px); }
+}
+
+@keyframes float6 {
+  0%, 100% { transform: rotate(-22deg) scale(1.25) translate(0, 0); }
+  50% { transform: rotate(-26deg) scale(1.25) translate(10px, -25px); }
+}
+
+@keyframes float7 {
+  0%, 100% { transform: rotate(8deg) scale(1.0) translate(0, 0); }
+  50% { transform: rotate(4deg) scale(1.0) translate(18px, 12px); }
+}
+
+@keyframes float8 {
+  0%, 100% { transform: rotate(10deg) scale(0.85) translate(0, 0); }
+  50% { transform: rotate(14deg) scale(0.85) translate(-12px, -18px); }
+}
+
+/* individual positions and animations — tweak to taste */
+.bg-1 { top: 6%; left: 3%; transform: rotate(-18deg) scale(1.2); animation: float1 8s ease-in-out infinite; }
+.bg-2 { top: 10%; right: 6%; transform: rotate(12deg) scale(0.95); animation: float2 7s ease-in-out infinite 0.5s; }
+.bg-3 { top: 35%; left: -30px; transform: rotate(-8deg) scale(1.05); animation: float3 9s ease-in-out infinite 1s; }
+.bg-4 { bottom: 20%; right: -30px; transform: rotate(18deg) scale(1.15); animation: float4 7.5s ease-in-out infinite 1.5s; }
+.bg-5 { top: 55%; left: 10%; transform: rotate(6deg) scale(0.9); animation: float5 8.5s ease-in-out infinite 2s; }
+.bg-6 { bottom: 6%; left: 20%; transform: rotate(-22deg) scale(1.25); animation: float6 9.5s ease-in-out infinite 2.5s; }
+.bg-7 { bottom: 12%; right: 22%; transform: rotate(8deg) scale(1.0); animation: float7 8s ease-in-out infinite 3s; }
+.bg-8 { top: 40%; right: 25%; transform: rotate(10deg) scale(0.85); animation: float8 7s ease-in-out infinite 3.5s; }
 
 /* keep main content above decorations */
 .home-container > *:not(.card-background) { position: relative; z-index: 1; }
