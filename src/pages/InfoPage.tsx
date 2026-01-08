@@ -7,24 +7,32 @@ export function InfoPage() {
     <MenuBackground>
       <div className="info-page">
         <h1>How to Play Joker Smash</h1>
-        
+
         <div className="info-content">
           <section className="info-section">
             <h2>🎯 Objective</h2>
             <p>
-              Be the first player to get rid of all your cards by forming valid sets
-              (groups or sequences) and placing them on the board. Win by emptying
-              your hand or having only jokers remaining!
+              Be the first player to get rid of all your cards by forming valid
+              sets (groups or sequences) and placing them on the board. Win by
+              emptying your hand or having only jokers remaining!
             </p>
           </section>
 
           <section className="info-section">
             <h2>🃏 Card Values</h2>
             <ul>
-              <li><strong>Number cards (2-10):</strong> Face value</li>
-              <li><strong>Jack, Queen, King:</strong> Worth 10 points</li>
-              <li><strong>Ace:</strong> Can be 1 or 14 (low or high in sequences)</li>
-              <li><strong>Jokers:</strong> Wild cards that can represent any card</li>
+              <li>
+                <strong>Number cards (2-10):</strong> Face value
+              </li>
+              <li>
+                <strong>Jack, Queen, King:</strong> Worth 10 points
+              </li>
+              <li>
+                <strong>Ace:</strong> Can be 1 or 14 (low or high in sequences)
+              </li>
+              <li>
+                <strong>Jokers:</strong> Wild cards that can represent any card
+              </li>
             </ul>
           </section>
 
@@ -32,7 +40,9 @@ export function InfoPage() {
             <h2>📋 Game Setup</h2>
             <ul>
               <li>Each player starts with a hand of cards</li>
-              <li>Cards are dealt from a shuffled deck (can be multiple decks)</li>
+              <li>
+                Cards are dealt from a shuffled deck (can be multiple decks)
+              </li>
               <li>Each turn has a time limit for drawing and playing</li>
             </ul>
           </section>
@@ -45,10 +55,12 @@ export function InfoPage() {
                 <p>Draw one card from either:</p>
                 <ul>
                   <li>The main deck (always available)</li>
-                  <li>The throw pile top card (available from turn 4 onwards)</li>
+                  <li>
+                    The throw pile top card (available from turn 4 onwards)
+                  </li>
                 </ul>
               </div>
-              
+
               <div className="phase">
                 <h3>Phase 2: Action</h3>
                 <p>Choose one action:</p>
@@ -64,7 +76,7 @@ export function InfoPage() {
 
           <section className="info-section">
             <h2>✅ Valid Sets</h2>
-            
+
             <div className="set-type">
               <h3>Groups (Same Value, Different Suits)</h3>
               <p>3 or more cards of the same value but different suits:</p>
@@ -92,8 +104,13 @@ export function InfoPage() {
             <h2>🎭 Joker Rules</h2>
             <ul>
               <li>Jokers can substitute any card in a set</li>
-              <li>Starting from turn 4, you can replace a joker on the board</li>
-              <li>To replace: select a card from your hand that matches the joker's position</li>
+              <li>
+                Starting from turn 4, you can replace a joker on the board
+              </li>
+              <li>
+                To replace: select a card from your hand that matches the
+                joker's position
+              </li>
               <li>The joker returns to your hand after replacement</li>
               <li>The set must remain valid after the replacement</li>
             </ul>
@@ -103,8 +120,12 @@ export function InfoPage() {
             <h2>⏱️ Time Limits</h2>
             <ul>
               <li>Each phase has a time limit (set by room creator)</li>
-              <li>If time expires during draw phase: automatically draw from deck</li>
-              <li>If time expires during action phase: last card is thrown away</li>
+              <li>
+                If time expires during draw phase: automatically draw from deck
+              </li>
+              <li>
+                If time expires during action phase: last card is thrown away
+              </li>
             </ul>
           </section>
 
@@ -129,7 +150,9 @@ export function InfoPage() {
           </section>
         </div>
 
-        <Link to="/" className="back-button">← Back to Menu</Link>
+        <Link to="/" className="back-button">
+          ← Back to Menu
+        </Link>
       </div>
     </MenuBackground>
   );
